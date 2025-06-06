@@ -55,6 +55,7 @@ from approaches.chatreadretrievereadvision import ChatReadRetrieveReadVisionAppr
 from approaches.promptmanager import PromptyManager
 from approaches.retrievethenread import RetrieveThenReadApproach
 from approaches.retrievethenreadvision import RetrieveThenReadVisionApproach
+from approaches.quiz import get_latest_quiz, quiz_bp
 from chat_history.cosmosdb import chat_history_cosmosdb_bp
 from config import (
     CONFIG_ASK_APPROACH,
@@ -416,6 +417,20 @@ async def list_uploaded(auth_claims: dict[str, Any]):
     return jsonify(files), 200
 
 
+@bp.get("/quiz")
+@authenticated
+async def quiz(auth_claims: dict[str, Any]):
+    """
+    프론트엔드에서 호출: 최근 대화 히스토리 기반 퀴즈 생성 및 반환
+    """
+    # 더미 인증 정보 사용 (테스트용)
+    # auth_claims = {"oid": "test-oid", "name": "테스트유저"}
+    
+    result = await get_latest_quiz(auth_claims)
+    status = 200 if "quiz" in result else 400
+    return jsonify(result), status
+
+
 @bp.before_app_serving
 async def setup_clients():
     # Replace these with your own values, either in environment variables or directly here
@@ -775,6 +790,7 @@ def create_app():
     app = Quart(__name__)
     app.register_blueprint(bp)
     app.register_blueprint(chat_history_cosmosdb_bp)
+    app.register_blueprint(quiz_bp)  # quiz_bp 등록
 
     if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
         app.logger.info("APPLICATIONINSIGHTS_CONNECTION_STRING is set, enabling Azure Monitor")
@@ -790,7 +806,7 @@ def create_app():
 
     # Log levels should be one of https://docs.python.org/3/library/logging.html#logging-levels
     # Set root level to WARNING to avoid seeing overly verbose logs from SDKS
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
     # Set our own logger levels to INFO by default
     app_level = os.getenv("APP_LOG_LEVEL", "INFO")
     app.logger.setLevel(os.getenv("APP_LOG_LEVEL", app_level))

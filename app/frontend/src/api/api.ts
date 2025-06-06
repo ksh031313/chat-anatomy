@@ -189,3 +189,23 @@ export async function deleteChatHistoryApi(id: string, idToken: string): Promise
         throw new Error(`Deleting chat history failed: ${response.statusText}`);
     }
 }
+
+/**
+ * 최근 대화 히스토리 기반 퀴즈 생성 API 호출
+ * @param idToken 인증 토큰
+ * @returns 퀴즈 데이터 또는 에러
+ */
+export async function getLatestQuizApi(idToken: string): Promise<any> {
+    const headers = await getHeaders(idToken);
+    const response = await fetch(`/quiz`, {
+        method: "GET",
+        headers: { ...headers, "Content-Type": "application/json" }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Getting latest quiz failed: ${response.statusText}`);
+    }
+
+    const dataResponse = await response.json();
+    return dataResponse;
+}

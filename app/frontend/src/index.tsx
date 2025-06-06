@@ -8,6 +8,7 @@ import { initializeIcons } from "@fluentui/react";
 import "./index.css";
 
 import Chat from "./pages/chat/Chat";
+import Intro from "./pages/intro/Intro";
 import LayoutWrapper from "./layoutWrapper";
 import i18next from "./i18n/config";
 
@@ -20,11 +21,22 @@ const router = createHashRouter([
         children: [
             {
                 index: true,
+                element: <Intro /> // 첫 화면을 Intro로 변경
+            },
+            {
+                path: "chat",
                 element: <Chat />
             },
             {
                 path: "qa",
                 lazy: () => import("./pages/ask/Ask")
+            },
+            {
+                path: "quiz",
+                lazy: async () => {
+                    const Quiz = (await import("./pages/quiz/Quiz")).default;
+                    return { element: <Quiz /> };
+                }
             },
             {
                 path: "*",

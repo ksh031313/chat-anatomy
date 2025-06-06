@@ -49,6 +49,15 @@ const Layout = () => {
                                     className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
                                     onClick={() => setMenuOpen(false)}
                                 >
+                                    {t("intro") /* intro 메뉴명, i18n에 추가 필요 */}
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/chat"
+                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
+                                    onClick={() => setMenuOpen(false)}
+                                >
                                     {t("chat")}
                                 </NavLink>
                             </li>
@@ -59,6 +68,15 @@ const Layout = () => {
                                     onClick={() => setMenuOpen(false)}
                                 >
                                     {t("qa")}
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/quiz"
+                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {t("quiz")}
                                 </NavLink>
                             </li>
                         </ul>
