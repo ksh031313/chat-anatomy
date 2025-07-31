@@ -16,9 +16,18 @@ interface Props {
     placeholder?: string;
     clearOnSend?: boolean;
     showSpeechInput?: boolean;
+    largeBox?: boolean; // 추가
 }
 
-export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend, initQuestion, showSpeechInput }: Props) => {
+export const QuestionInput = ({
+    onSend,
+    disabled,
+    placeholder,
+    clearOnSend,
+    initQuestion,
+    showSpeechInput,
+    largeBox // 추가
+}: Props) => {
     const [question, setQuestion] = useState<string>("");
     const { loggedIn } = useContext(LoginContext);
     const { t } = useTranslation();
@@ -72,7 +81,14 @@ export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend, init
     }
 
     return (
-        <Stack horizontal className={styles.questionInputContainer}>
+        <Stack
+            horizontal
+            className={
+                largeBox
+                    ? `${styles.questionInputContainer} ${styles.questionInputContainerLarge}`
+                    : styles.questionInputContainer
+            }
+        >
             <TextField
                 className={styles.questionInputTextArea}
                 disabled={disableRequiredAccessControl}

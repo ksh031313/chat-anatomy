@@ -71,8 +71,8 @@
 
 @media (min-width: 992px) {
     .askTitle {
-        font-size: 4rem;
-        margin-top: 8.125rem;
+        /* font-size: 4rem; */
+        margin-top: 2rem;
     }
 
     .commandsContainer {

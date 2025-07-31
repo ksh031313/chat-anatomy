@@ -209,3 +209,19 @@ export async function getLatestQuizApi(idToken: string): Promise<any> {
     const dataResponse = await response.json();
     return dataResponse;
 }
+
+export async function postAskHistoryApi(item: any, idToken: string): Promise<any> {
+    const headers = await getHeaders(idToken);
+    const response = await fetch("/ask_history", {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Posting ask history failed: ${response.statusText}`);
+    }
+
+    const dataResponse: any = await response.json();
+    return dataResponse;
+}

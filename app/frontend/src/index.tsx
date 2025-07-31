@@ -11,6 +11,7 @@ import Chat from "./pages/chat/Chat";
 import Intro from "./pages/intro/Intro";
 import LayoutWrapper from "./layoutWrapper";
 import i18next from "./i18n/config";
+import Outro from "./pages/outro/Outro";
 
 initializeIcons();
 
@@ -37,6 +38,10 @@ const router = createHashRouter([
                     const Quiz = (await import("./pages/quiz/Quiz")).default;
                     return { element: <Quiz /> };
                 }
+            },
+            {
+                path: "outro",
+                element: <Outro />
             },
             {
                 path: "*",

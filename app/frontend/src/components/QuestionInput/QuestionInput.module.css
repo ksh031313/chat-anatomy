@@ -8,9 +8,22 @@
     background: white;
 }
 
+.questionInputContainerLarge {
+    height: 10rem;
+}
+
 .questionInputTextArea {
     width: 100%;
     line-height: 2.5rem;
+    height: 100%; /* 상위 div 높이에 맞춤 */
+}
+
+.questionInputTextArea :global(.ms-TextField-fieldGroup) {
+    height: 100%;      /* 상위 div에 맞추거나 원하는 값(px/rem 등)으로 조절 */
+}
+
+.questionInputTextArea :global(.ms-TextField-wrapper) {
+    height: 100%;      /* 상위 div에 맞추거나 원하는 값(px/rem 등)으로 조절 */
 }
 
 .questionInputButtonsContainer {
@@ -22,5 +35,9 @@
 @media (min-width: 992px) {
     .questionInputContainer {
         height: 5.625rem;
+    }
+
+    .questionInputContainerLarge {
+        height: 10rem;
     }
 }

@@ -1,11 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { Panel, DefaultButton, Spinner } from "@fluentui/react";
+import { IconButton, Panel, PanelType, DefaultButton, Spinner } from "@fluentui/react";
 
 import styles from "./Ask.module.css";
 
-import { askApi, configApi, ChatAppResponse, ChatAppRequest, RetrievalMode, VectorFieldOptions, GPT4VInput, SpeechConfig } from "../../api";
+import { askApi, configApi, postAskHistoryApi, ChatAppResponse, ChatAppRequest, RetrievalMode, VectorFieldOptions, GPT4VInput, SpeechConfig } from "../../api";
 import { Answer, AnswerError } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { ExampleList } from "../../components/Example";
@@ -18,6 +18,7 @@ import { useMsal } from "@azure/msal-react";
 import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
 import { LoginContext } from "../../loginContext";
 import { LanguagePicker } from "../../i18n/LanguagePicker";
+import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 
 export function Component(): JSX.Element {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -153,6 +154,18 @@ export function Component(): JSX.Element {
             const result = await askApi(request, token);
             setAnswer(result);
             setSpeechUrls([null]);
+
+            // ask-history-v2 컨테이너에 저장
+            // id는 result.session_state, answers는 [[질문, 답변]] 배열로 저장
+            if (result && result.session_state && result.message && result.message.content && token) {
+                await postAskHistoryApi(
+                    {
+                        id: result.session_state,
+                        answers: [[question, result.message.content]]
+                    },
+                    token
+                );
+            }
         } catch (e) {
             setError(e);
         } finally {
@@ -261,14 +274,45 @@ export function Component(): JSX.Element {
         <div className={styles.askContainer}>
             {/* Setting the page title using react-helmet-async */}
             <Helmet>
-                <title>{t("pageTitle")}</title>
+                <title>배운 내용을 설명하세요.</title>
             </Helmet>
             <div className={styles.askTopSection}>
                 <div className={styles.commandsContainer}>
                     {showUserUpload && <UploadFile className={styles.commandButton} disabled={loggedIn} />}
-                    <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    {/* <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} /> */}
+                    {/* Help 버튼 추가 */}
                 </div>
                 <h1 className={styles.askTitle}>{t("askTitle")}</h1>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 24, margin: "24px 0", paddingLeft: 70, paddingRight: 70, maxWidth: 1100, marginLeft: "auto", marginRight: "auto" }}>
+                    <img
+                        src={appCharacter}
+                        alt="App Character"
+                        style={{
+                            width: 140,
+                            objectFit: "contain",
+                            marginLeft: 8,
+                            background: "#f8f8f8",
+                            borderRadius: 12,
+                            border: "1px solid #eee",
+                        }}
+                    />
+                    <div
+                        style={{
+                            border: "2px solid #888",
+                            borderRadius: 8,
+                            padding: 20,
+                            fontSize: 22,
+                            background: "#fafbfc",
+                            color: "#444",
+                            flex: 1,
+                            lineHeight: 1.6,
+                        }}
+                    >
+                        오늘 수업에 참석하지 못한 친구가 여러분의 설명을 기다리고 있어요!<br />
+                        여러분의 미션은 오늘 배운 해부학 내용을 친구가 이해할 수 있도록 자신의 언어로 쉽고 정확하게 설명하는 거예요.<br />
+                        먼저 수업에서 배운 내용을 떠올려보고, 후배가 이해할 수 있도록 쉽고 자세하게 설명해주세요.
+                    </div>
+                </div>
                 <div className={styles.askQuestionInput}>
                     <QuestionInput
                         placeholder={t("gpt4vExamples.placeholder")}
@@ -276,6 +320,7 @@ export function Component(): JSX.Element {
                         initQuestion={question}
                         onSend={question => makeApiRequest(question)}
                         showSpeechInput={showSpeechInput}
+                        largeBox={true}
                     />
                 </div>
             </div>
@@ -284,7 +329,7 @@ export function Component(): JSX.Element {
                 {!lastQuestionRef.current && (
                     <div className={styles.askTopSection}>
                         {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
-                        <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} />
+                        {/* <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} /> */}
                     </div>
                 )}
                 {!isLoading && answer && !error && (

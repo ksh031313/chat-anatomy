@@ -12,6 +12,7 @@ import nlTranslation from "../locales/nl/translation.json";
 import ptBRTranslation from "../locales/ptBR/translation.json";
 import trTranslation from "../locales/tr/translation.json";
 import itTranslation from "../locales/it/translation.json";
+import koTranslation from "../locales/ko/translation.json"; // 1. ko 번역 import
 
 export const supportedLngs: { [key: string]: { name: string; locale: string } } = {
     da: {
@@ -49,6 +50,10 @@ export const supportedLngs: { [key: string]: { name: string; locale: string } } 
     it: {
         name: "Italiano",
         locale: "it-IT"
+    },
+    ko: { // 2. ko 추가
+        name: "한국어",
+        locale: "ko-KR"
     }
 };
 
@@ -56,8 +61,6 @@ i18next
     .use(HttpApi)
     .use(LanguageDetector)
     .use(initReactI18next)
-    // init i18next
-    // for all options read: https://www.i18next.com/overview/configuration-options
     .init({
         resources: {
             da: { translation: daTranslation },
@@ -68,9 +71,11 @@ i18next
             nl: { translation: nlTranslation },
             ptBR: { translation: ptBRTranslation },
             tr: { translation: trTranslation },
-            it: { translation: itTranslation }
+            it: { translation: itTranslation },
+            ko: { translation: koTranslation } // 3. ko 추가
         },
-        fallbackLng: "en",
+        lng: "ko", // 항상 한국어로 고정
+        fallbackLng: "ko",
         supportedLngs: Object.keys(supportedLngs),
         debug: import.meta.env.DEV,
         interpolation: {

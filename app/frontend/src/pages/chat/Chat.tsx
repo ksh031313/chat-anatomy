@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { Panel, DefaultButton } from "@fluentui/react";
+import { Panel, PanelType, DefaultButton, IconButton } from "@fluentui/react"; // IconButton 추가
 import readNDJSONStream from "ndjson-readablestream";
 
 import appLogo from "../../assets/applogo.svg";
+import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Chat.module.css";
 
 import {
@@ -91,6 +92,7 @@ const Chat = () => {
     const [showChatHistoryCosmos, setShowChatHistoryCosmos] = useState<boolean>(false);
     const audio = useRef(new Audio()).current;
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isExample, setIsExample] = useState(false);
 
     const speechConfig: SpeechConfig = {
         speechUrls,
@@ -238,7 +240,8 @@ const Chat = () => {
             if (shouldStream) {
                 const parsedResponse: ChatAppResponse = await handleAsyncRequest(question, answers, response.body);
                 setAnswers([...answers, [question, parsedResponse]]);
-                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
+                // 예시 클릭이 아닐 때만 히스토리 저장
+                if (!isExample && typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
                     historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token);
                 }
@@ -248,7 +251,7 @@ const Chat = () => {
                     throw Error(parsedResponse.error);
                 }
                 setAnswers([...answers, [question, parsedResponse as ChatAppResponse]]);
-                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
+                if (!isExample && typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
                     historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token);
                 }
@@ -258,6 +261,7 @@ const Chat = () => {
             setError(e);
         } finally {
             setIsLoading(false);
+            setIsExample(false); // 요청 끝나면 예시 상태 초기화
         }
     };
 
@@ -345,6 +349,7 @@ const Chat = () => {
     };
 
     const onExampleClicked = (example: string) => {
+        setIsExample(true);
         makeApiRequest(example);
     };
 
@@ -375,7 +380,7 @@ const Chat = () => {
         <div className={styles.container}>
             {/* Setting the page title using react-helmet-async */}
             <Helmet>
-                <title>{t("pageTitle")}</title>
+                <title>AI 튜터에 질문하세요.</title>
             </Helmet>
             <div className={styles.commandsSplitContainer}>
                 <div className={styles.commandsContainer}>
@@ -386,19 +391,57 @@ const Chat = () => {
                 <div className={styles.commandsContainer}>
                     <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                     {showUserUpload && <UploadFile className={styles.commandButton} disabled={!loggedIn} />}
-                    <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    {/* <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} /> */}
+                    {/* Help 버튼 추가 */}
                 </div>
             </div>
             <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? "300px" : "0" }}>
                 <div className={styles.chatContainer}>
                     {!lastQuestionRef.current ? (
                         <div className={styles.chatEmptyState}>
-                            <img src={appLogo} alt="App logo" width="120" height="120" />
-
-                            <h1 className={styles.chatEmptyStateTitle}>{t("chatEmptyStateTitle")}</h1>
-                            <h2 className={styles.chatEmptyStateSubtitle}>{t("chatEmptyStateSubtitle")}</h2>
+                            <div
+                                style={{
+                                    fontSize: 48,
+                                    fontWeight: "bold",
+                                    padding: "16px 0",
+                                    textAlign: "center",
+                                    marginBottom: 32,
+                                    letterSpacing: "2px",
+                                }}
+                            >
+                                AI 튜터에 질문하세요.
+                            </div>
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 5, paddingLeft: 70, paddingRight: 70, maxWidth: 1100, marginLeft: "auto", marginRight: "auto", }}>
+                                <img
+                                    src={appCharacter}
+                                    alt="App Character"
+                                    style={{
+                                        width: 140,
+                                        objectFit: "contain",
+                                        marginLeft: 8,
+                                        background: "#f8f8f8",
+                                        borderRadius: 12,
+                                        border: "1px solid #eee",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        border: "2px solid #888",
+                                        borderRadius: 8,
+                                        padding: 20,
+                                        fontSize: 22,
+                                        background: "#fafbfc",
+                                        color: "#444",
+                                        flex: 1,
+                                        lineHeight: 1.5,
+                                    }}
+                                >
+                                    친구에게 설명하다가 잘 기억나지 않거나 헷갈리는 부분이 있나요? <br />
+                                    지금 바로 AI 튜터에게 질문해보세요!<br /><br />
+                                    궁금한 내용이나 정확하게 이해되지 않는 부분을 프롬프트에 적으면 AI 튜터가 친절하고 자세하게 알려줄 거예요. 주저하지 말고 편하게 질문해보세요!
+                                </div>
+                            </div>
                             {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
-
                             <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} />
                         </div>
                     ) : (

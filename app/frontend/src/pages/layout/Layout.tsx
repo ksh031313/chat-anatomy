@@ -52,6 +52,15 @@ const Layout = () => {
                                     {t("intro") /* intro 메뉴명, i18n에 추가 필요 */}
                                 </NavLink>
                             </li>
+                                                    <li>
+                                <NavLink
+                                    to="/qa"
+                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {t("qa")}
+                                </NavLink>
+                            </li>
                             <li>
                                 <NavLink
                                     to="/chat"
@@ -59,15 +68,6 @@ const Layout = () => {
                                     onClick={() => setMenuOpen(false)}
                                 >
                                     {t("chat")}
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/qa"
-                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    {t("qa")}
                                 </NavLink>
                             </li>
                             <li>
