@@ -399,46 +399,19 @@ const Chat = () => {
                 <div className={styles.chatContainer}>
                     {!lastQuestionRef.current ? (
                         <div className={styles.chatEmptyState}>
-                            <div
-                                style={{
-                                    fontSize: 48,
-                                    fontWeight: "bold",
-                                    padding: "16px 0",
-                                    textAlign: "center",
-                                    marginBottom: 32,
-                                    letterSpacing: "2px",
-                                }}
-                            >
+                            <div className={styles.chatTitle}>
                                 AI 튜터에 질문하세요.
                             </div>
-                            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 5, paddingLeft: 70, paddingRight: 70, maxWidth: 1100, marginLeft: "auto", marginRight: "auto", }}>
+                            <div className={styles.appCharacterContainer}>
                                 <img
                                     src={appCharacter}
                                     alt="App Character"
-                                    style={{
-                                        width: 140,
-                                        objectFit: "contain",
-                                        marginLeft: 8,
-                                        background: "#f8f8f8",
-                                        borderRadius: 12,
-                                        border: "1px solid #eee",
-                                    }}
+                                    className={styles.appCharacterImage}
                                 />
-                                <div
-                                    style={{
-                                        border: "2px solid #888",
-                                        borderRadius: 8,
-                                        padding: 20,
-                                        fontSize: 22,
-                                        background: "#fafbfc",
-                                        color: "#444",
-                                        flex: 1,
-                                        lineHeight: 1.5,
-                                    }}
-                                >
-                                    친구에게 설명하다가 잘 기억나지 않거나 헷갈리는 부분이 있나요? <br />
-                                    지금 바로 AI 튜터에게 질문해보세요!<br /><br />
-                                    궁금한 내용이나 정확하게 이해되지 않는 부분을 프롬프트에 적으면 AI 튜터가 친절하고 자세하게 알려줄 거예요. 주저하지 말고 편하게 질문해보세요!
+                                <div className={styles.appCharacterText}>
+                                    친구한테 설명하다가 기억이 잘 안 나거나 헷갈리는 부분 있어? <br />
+                                    지금 바로 토미한테 질문해봐!<br /><br />
+                                    궁금한 거나 정확히 이해 안 되는 부분을 프롬프트에 적으면 토미가 친절하고 자세하게 알려줄게. 부담 갖지 말고 편하게 질문해!
                                 </div>
                             </div>
                             {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}

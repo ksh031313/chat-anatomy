@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { DefaultButton, Spinner, Panel, PanelType, IconButton } from "@fluentui/react";
-import { getLatestQuizApi } from "../../api/api";
+import { getLatestQuizApi, saveQuizResultApi } from "../../api/api";
 import { useLogin, getToken } from "../../authConfig";
 import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
+import styles from "./Quiz.module.css";
 
 type QuizItem = {
     question: string;
     choices: string[];
     answer: number; // 1-based index
     explanation: string;
+    userChoice?: number | null; // 사용자가 선택한 번호
+    isCorrect?: boolean; // 정답 여부
 };
 
 const Quiz: React.FC = () => {
     const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
+    const [savedQuizzes, setSavedQuizzes] = useState<QuizItem[]>([]);
     const [currentIdx, setCurrentIdx] = useState(0);
     const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
@@ -31,10 +35,12 @@ const Quiz: React.FC = () => {
         setLoading(true);
         setError(null);
         setQuizzes([]);
+        setSavedQuizzes([]); // 저장용 배열 초기화
         setCurrentIdx(0);
         setSelectedChoice(null);
         setShowResult(false);
         setIsCorrect(null);
+
         try {
 
             let idToken: string | undefined;
@@ -54,6 +60,15 @@ const Quiz: React.FC = () => {
                 return;
             }
 
+            // 로그인 정보 출력 **테스트용(운영시 삭제!!)**
+            if (msalInstance) {
+                const accounts = msalInstance.getAllAccounts();
+                console.log("로그인된 계정 정보:", accounts);
+
+                const token = await getToken(msalInstance);
+                console.log("ID Token:", token);
+            }
+
             const data = await getLatestQuizApi(idToken);
 
             let quizArray: QuizItem[] = [];
@@ -71,6 +86,7 @@ const Quiz: React.FC = () => {
                 return;
             }
             setQuizzes(quizArray);
+            setSavedQuizzes(quizArray.map((quiz) => ({ ...quiz }))); // 저장용 배열 초기화
 
             // Mock data for demonstration purposes
 //             const data = [
@@ -122,16 +138,55 @@ const Quiz: React.FC = () => {
 
     const handleSubmit = () => {
         if (selectedChoice === null) return;
+
         const correct = quizzes[currentIdx].answer === selectedChoice + 1;
+
+        // 저장용 배열 업데이트
+        const updatedSavedQuizzes = [...savedQuizzes];
+        updatedSavedQuizzes[currentIdx] = {
+            ...quizzes[currentIdx],
+            userChoice: selectedChoice,
+            isCorrect: correct,
+        };
+
+        setSavedQuizzes(updatedSavedQuizzes);
         setIsCorrect(correct);
         setShowResult(true);
     };
 
-    const handleNext = () => {
-        setCurrentIdx((prev) => prev + 1);
-        setSelectedChoice(null);
-        setShowResult(false);
-        setIsCorrect(null);
+    const handleNext = async () => {
+        if (currentIdx < quizzes.length - 1) {
+            setCurrentIdx((prev) => prev + 1);
+            setSelectedChoice(null);
+            setShowResult(false);
+            setIsCorrect(null);
+        } else {
+            // 모든 퀴즈를 완료했을 때 저장
+            await saveQuizResults();
+        }
+    };
+
+    const saveQuizResults = async () => {
+        console.log("저장된 퀴즈 데이터:", savedQuizzes);
+        // try {
+        //     const token = msalInstance ? await getToken(msalInstance) : null;
+        //     if (!token) {
+        //         console.error("유효한 토큰이 없습니다.");
+        //         return;
+        //     }
+
+        //     await saveQuizResultApi(
+        //         {
+        //             id: "quiz-session", // 세션 ID 또는 고유 식별자
+        //             results: savedQuizzes, // 저장된 퀴즈 결과
+        //         },
+        //         token
+        //     );
+
+        //     console.log("퀴즈 결과가 성공적으로 저장되었습니다.");
+        // } catch (error) {
+        //     console.error("퀴즈 결과 저장 실패:", error);
+        // }
     };
 
     // 화면 진입 시 퀴즈 자동 불러오기
@@ -142,135 +197,72 @@ const Quiz: React.FC = () => {
 
     // 퀴즈가 없으면 버튼만, 있으면 퀴즈 진행
     return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", padding: 32 }}>
-            <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
-            </div>
+        <div className={styles.container}>
+            <div className={styles.header}></div>
             <div>
-                <div
-                    style={{
-                        fontSize: 44,
-                        fontWeight: "bold",
-                        padding: "16px 0",
-                        textAlign: "center",
-                        marginBottom: 32,
-                        letterSpacing: "2px",
-                    }}
-                >
-                    AI가 만든 퀴즈를 풀며 복습하세요.
-                </div>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 32, paddingLeft: 70, paddingRight: 70, maxWidth: 1100, marginLeft: "auto", marginRight: "auto", }}>
-                    <img
-                        src={appCharacter}
-                        alt="App Character"
-                        style={{
-                            width: 140,
-                            objectFit: "contain",
-                            marginLeft: 8,
-                            background: "#f8f8f8",
-                            borderRadius: 12,
-                            border: "1px solid #eee",
-                        }}
-                    />
-                    <div
-                        style={{
-                            border: "2px solid #888",
-                            borderRadius: 8,
-                            padding: 20,
-                            fontSize: 22,
-                            background: "#fafbfc",
-                            color: "#444",
-                            flex: 1,
-                            lineHeight: 1.3,
-                        }}
-                    >
+                <div className={styles.title}>AI가 만든 퀴즈를 풀며 복습하세요.</div>
+                <div className={styles.content}>
+                    <img src={appCharacter} alt="App Character" className={styles.image} />
+                    <div className={styles.text}>
                         아까 네가 나에게 질문했던 내용을 바탕으로 퀴즈를 만들어봤어!<br />
                         퀴즈를 풀면서 배운 내용을 복습해보자.<br />
-                        잘 학습했는지 확인해볼 준비됐지? <span style={{ fontSize: 32 }}>😊</span>
+                        잘 학습했는지 확인해볼 준비됐지? <span className={styles.emoji}>😊</span>
                     </div>
                 </div>
             </div>
-            {/* <DefaultButton
-                style={{ marginTop: 20 }}
-                onClick={() => navigate("/outro")}
-                >
-                학습 정리로 이동
-            </DefaultButton> */}
             {quizzes.length === 0 && (
-            <DefaultButton onClick={handleGetQuiz} disabled={loading} style={{ marginBottom: 24 }}>
-                퀴즈 불러오기
-            </DefaultButton>
+                <DefaultButton onClick={handleGetQuiz} disabled={loading} className={styles.button}>
+                    퀴즈 불러오기
+                </DefaultButton>
             )}
             {loading && <Spinner label="퀴즈를 불러오는 중입니다..." />}
-            {error && <div style={{ color: "red", marginTop: 16 }}>{error}</div>}
-
+            {error && <div className={styles.error}>{error}</div>}
             {quizzes.length > 0 && currentIdx < quizzes.length && (
-            <div style={{ width: "50%" }}>
-                <div style={{ marginBottom: 16 }}>
-                <b>문제 {currentIdx + 1}.</b> {quizzes[currentIdx].question}
-                </div>
-                <div>
-                {quizzes[currentIdx].choices.map((choice, idx) => (
-                    <div
-                    key={idx}
-                    onClick={() => handleChoice(idx)}
-                    style={{
-                        padding: "8px 12px",
-                        margin: "6px 0",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        background: selectedChoice === idx ? "#e6f7ff" : "#fff",
-                        cursor: showResult ? "default" : "pointer",
-                        opacity: showResult && quizzes[currentIdx].answer === idx + 1 ? 1 : undefined,
-                        fontWeight: showResult && quizzes[currentIdx].answer === idx + 1 ? "bold" : undefined,
-                    }}
-                    >
-                    {choice}
+                <div className={styles.quizContainer}>
+                    <div className={styles.quizQuestion}>
+                        <b>문제 {currentIdx + 1}.</b> {quizzes[currentIdx].question}
                     </div>
-                ))}
-                </div>
-                {!showResult && (
-                <DefaultButton
-                    onClick={handleSubmit}
-                    disabled={selectedChoice === null}
-                    style={{ marginTop: 16 }}
-                >
-                    제출
-                </DefaultButton>
-                )}
-                {showResult && (
-                <div style={{ marginTop: 16, marginBottom: 16 }}>
-                    <div style={{ color: isCorrect ? "green" : "red", fontWeight: "bold" }}>
-                    {isCorrect ? "정답입니다!" : "오답입니다."}
+                    <div>
+                        {quizzes[currentIdx].choices.map((choice, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => handleChoice(idx)}
+                                className={`${styles.quizChoice} ${
+                                    selectedChoice === idx ? styles.selected : ""
+                                } ${showResult && quizzes[currentIdx].answer === idx + 1 ? styles.correct : ""}`}
+                            >
+                                {choice}
+                            </div>
+                        ))}
                     </div>
-                    <div style={{ marginTop: 8, background: "#f5f5f5", padding: 12, borderRadius: 6 }}>
-                    <b>해설:</b> {quizzes[currentIdx].explanation}
-                    </div>
-                    {currentIdx < quizzes.length - 1 ? (
-                    <DefaultButton onClick={handleNext} style={{ marginTop: 16 }}>
-                        다음 문제
-                    </DefaultButton>
-                    ) : (
-                    <div style={{ marginTop: 24, fontWeight: "bold" }}>
-                        퀴즈가 모두 끝났습니다!{" "}
-                        <Link to="/outro" style={{ color: "#1976d2", textDecoration: "underline", fontWeight: "bold" }}>
-                            학습 정리
-                        </Link>
-                        로 이동하세요.
-                    </div>
+                    {!showResult && (
+                        <DefaultButton onClick={handleSubmit} disabled={selectedChoice === null} className={styles.button}>
+                            제출
+                        </DefaultButton>
                     )}
-                </div>
-                )}
-            </div>
-            )}
-
-            {/* 퀴즈가 모두 끝났을 때 */}
-            {quizzes.length > 0 && currentIdx === quizzes.length && (
-                <div style={{ marginTop: 24, fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    퀴즈가 모두 끝났습니다!{" "}
-                    <Link to="/outro" style={{ color: "#1976d2", textDecoration: "underline", fontWeight: "bold" }}>
-                        학습 정리
-                    </Link>
-                    로 이동하세요.
+                    {showResult && (
+                        <div className={styles.quizResult}>
+                            <div style={{ color: isCorrect ? "green" : "red", fontWeight: "bold" }}>
+                                {isCorrect ? "정답입니다!" : "오답입니다."}
+                            </div>
+                            <div className={styles.quizExplanation}>
+                                <b>해설:</b> {quizzes[currentIdx].explanation}
+                            </div>
+                            {currentIdx < quizzes.length - 1 ? (
+                                <DefaultButton onClick={handleNext} className={styles.button}>
+                                    다음 문제
+                                </DefaultButton>
+                            ) : (
+                                <div className={styles.quizEnd}>
+                                    퀴즈가 모두 끝났습니다!{" "}
+                                    <Link to="/outro" className={styles.link}>
+                                        학습 정리
+                                    </Link>
+                                    로 이동하세요.
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -1,68 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
+import styles from "./Intro.module.css";
 
 const Intro = () => (
-    <div style={{ padding: 32, minHeight: "100vh", background: "#f2f2f2" }}>
-        <div
-            style={{
-                fontSize: 48,
-                fontWeight: "bold",
-                padding: "16px 0",
-                textAlign: "center",
-                marginBottom: 32,
-                letterSpacing: "2px",
-            }}
-        >
+    <div className={styles.container}>
+        <div className={styles.title}>
             해부학을 위한 AI 튜터
         </div>
-        <div
-            style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 24,
-                marginBottom: 24,
-                paddingLeft: 70,
-                paddingRight: 70,
-                maxWidth: 1100,
-                marginLeft: "auto",
-                marginRight: "auto"
-            }}
-        >
+        <div className={styles.content}>
             <img
                 src={appCharacter}
                 alt="App Character"
-                style={{
-                    width: 140,
-                    objectFit: "contain",
-                    marginLeft: 8,
-                    background: "#f8f8f8",
-                    borderRadius: 12,
-                    border: "1px solid #eee",
-                }}
+                className={styles.image}
             />
-            <div
-                style={{
-                    border: "2px solid #888",
-                    borderRadius: 8,
-                    padding: 20,
-                    fontSize: 22,
-                    background: "#fafbfc",
-                    color: "#444",
-                    flex: 1,
-                    lineHeight: 1.6,
-                }}
-            >
-                안녕! 나는 너와 함께 해부학을 쉽고 재밌게 공부할 AI 튜터야!<br />
+            <div className={styles.text}>
+                안녕! 나는 너와 함께 해부학을 쉽고 재밌게 공부할 AI 튜터 '토미'야!<br />
                 이제 나와 함께 아래의 순서로 공부해볼거야.<br /><br />
                 1) 교수님과 공부한 내용에 대해 너만의 말로 간단히 설명해봐.<br />
                 2) 설명을 하다가 생긴 궁금한 점이나 모르는 내용을 나한테 물어보면 돼.<br />
                 3) 너의 질문을 바탕으로 내가 만들어주는 퀴즈도 풀면서 실력을 키워가면 돼.<br /><br />
                 자, 준비가 되었으면{" "}
-                <Link to="/qa" style={{ color: "#1976d2", textDecoration: "underline", fontWeight: "bold" }}>
+                <Link to="/qa" className={styles.link}>
                     1단계로 이동
                 </Link>
-                해서 공부를 시작해볼까? <span style={{ fontSize: 26 }}>😊</span>
+                해서 공부를 시작해볼까? <span className={styles.emoji}>😊</span>
             </div>
         </div>
     </div>

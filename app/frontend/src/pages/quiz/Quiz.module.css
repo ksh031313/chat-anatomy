@@ -1,0 +1,150 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 32px;
+}
+
+.header {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+}
+
+.title {
+    font-size: 44px;
+    font-weight: bold;
+    padding: 16px 0;
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: 2px;
+}
+
+.content {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-left: 70px;
+    padding-right: 70px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.image {
+    width: 140px;
+    object-fit: contain;
+    margin-left: 8px;
+    background: #f8f8f8;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.text {
+    border: 2px solid #888;
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 22px;
+    background: #fafbfc;
+    color: #444;
+    flex: 1;
+    line-height: 1.3;
+}
+
+.emoji {
+    font-size: 26px;
+}
+
+.quizContainer {
+    width: 50%;
+}
+
+.quizQuestion {
+    margin-bottom: 16px;
+}
+
+.quizChoice {
+    padding: 8px 12px;
+    margin: 6px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.quizChoice.selected {
+    background: #e6f7ff;
+}
+
+.quizChoice.correct {
+    font-weight: bold;
+    opacity: 1;
+}
+
+.quizResult {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.quizExplanation {
+    margin-top: 8px;
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.quizEnd {
+    margin-top: 24px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.link {
+    color: #1976d2;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.button {
+    margin-top: 16px;
+}
+
+.error {
+    color: red;
+    margin-top: 16px;
+}
+
+/* 모바일 화면 (max-width: 768px) */
+@media (max-width: 768px) {
+    .title {
+        font-size: 32px;
+        margin-bottom: 24px;
+    }
+
+    .content {
+        flex-direction: column;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .image {
+        margin-bottom: 16px;
+        margin-left: 0;
+    }
+
+    .text {
+        text-align: center;
+        line-height: 1.5;
+        font-size: 18px;
+    }
+
+    .quizContainer {
+        width: 90%;
+    }
+}

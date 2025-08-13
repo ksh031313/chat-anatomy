@@ -283,34 +283,16 @@ export function Component(): JSX.Element {
                     {/* Help 버튼 추가 */}
                 </div>
                 <h1 className={styles.askTitle}>{t("askTitle")}</h1>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 24, margin: "24px 0", paddingLeft: 70, paddingRight: 70, maxWidth: 1100, marginLeft: "auto", marginRight: "auto" }}>
+                <div className={styles.appCharacterContainer}>
                     <img
                         src={appCharacter}
                         alt="App Character"
-                        style={{
-                            width: 140,
-                            objectFit: "contain",
-                            marginLeft: 8,
-                            background: "#f8f8f8",
-                            borderRadius: 12,
-                            border: "1px solid #eee",
-                        }}
+                        className={styles.appCharacterImage}
                     />
-                    <div
-                        style={{
-                            border: "2px solid #888",
-                            borderRadius: 8,
-                            padding: 20,
-                            fontSize: 22,
-                            background: "#fafbfc",
-                            color: "#444",
-                            flex: 1,
-                            lineHeight: 1.6,
-                        }}
-                    >
-                        오늘 수업에 참석하지 못한 친구가 여러분의 설명을 기다리고 있어요!<br />
-                        여러분의 미션은 오늘 배운 해부학 내용을 친구가 이해할 수 있도록 자신의 언어로 쉽고 정확하게 설명하는 거예요.<br />
-                        먼저 수업에서 배운 내용을 떠올려보고, 후배가 이해할 수 있도록 쉽고 자세하게 설명해주세요.
+                    <div className={styles.appCharacterText}>
+                        오늘 수업에 못 온 친구가 너의 설명을 기다리고 있어!<br />
+                        너의 미션은 오늘 배운 해부학 내용을 친구가 쉽게 이해할 수 있게 너 자신의 말로 쉽고 정확하게 설명하는 거야.<br />
+                        먼저 수업에서 배운 내용을 떠올리고, 친구가 이해할 수 있도록 쉽고 자세하게 설명해줘.
                     </div>
                 </div>
                 <div className={styles.askQuestionInput}>

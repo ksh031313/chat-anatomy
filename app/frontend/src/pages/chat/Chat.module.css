@@ -108,18 +108,28 @@
     margin-bottom: 1.25rem;
 }
 
+.chatTitle {
+    font-size: 48px;
+    font-weight: bold;
+    padding: 16px 0;
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: 2px;
+}
+
 @media (min-width: 992px) {
     .container {
         margin-top: 1.25rem;
     }
-
+/* 
     .chatEmptyState {
-        /* padding-top: 1.75rem; */
+        padding-top: 1.75rem;
     }
 
     .chatEmptyStateTitle {
-        /* font-size: 4rem; */
-    }
+        font-size: 4rem;
+    } 
+*/
 
     .chatInput {
         padding: 0.75rem 1.5rem 1.5rem;
@@ -142,5 +152,85 @@
     .chatMessageGpt {
         max-width: 80%;
         min-width: 31.25rem;
+    }
+}
+
+/* 모바일 화면에서 레이아웃 조정 */
+@media (max-width: 768px) {
+    .chatEmptyState {
+        flex-direction: column; /* 세로 정렬 */
+        align-items: center; /* 가운데 정렬 */
+        padding: 16px;
+    }
+
+    .appCharacterContainer {
+        display: flex;
+        flex-direction: column; /* 세로 정렬 */
+        align-items: center;
+        gap: 16px; /* 이미지와 텍스트 간격 */
+    }
+
+    .appCharacterImage {
+        margin-bottom: 16px; /* 이미지 아래 여백 */
+        width: 140px;
+        object-fit: contain;
+        background: #f8f8f8;
+        border-radius: 12px;
+        border: 1px solid #eee;
+    }
+
+    .appCharacterText {
+        border: 2px solid #888;
+        border-radius: 8px;
+        padding: 20px;
+        font-size: 18px;
+        background: #fafbfc;
+        color: #444;
+        line-height: 1.5;
+        text-align: center;
+    }
+
+    .chatTitle {
+        font-size: 32px;
+        font-weight: bold;
+        padding: 16px 0;
+        text-align: center;
+        margin-bottom: 5px;
+        letter-spacing: 2px;
+    }
+}
+
+/* 모바일 화면이 아닐 때 레이아웃 조정 */
+@media (min-width: 769px) {
+    .appCharacterContainer {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        margin: 24px 0;
+        padding-left: 70px;
+        padding-right: 70px;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .appCharacterImage {
+        width: 140px;
+        object-fit: contain;
+        margin-left: 8px;
+        background: #f8f8f8;
+        border-radius: 12px;
+        border: 1px solid #eee;
+    }
+
+    .appCharacterText {
+        border: 2px solid #888;
+        border-radius: 8px;
+        padding: 20px;
+        font-size: 22px;
+        background: #fafbfc;
+        color: #444;
+        flex: 1;
+        line-height: 1.6;
     }
 }
