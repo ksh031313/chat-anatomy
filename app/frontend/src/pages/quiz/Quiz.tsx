@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DefaultButton, Spinner, Panel, PanelType, IconButton } from "@fluentui/react";
-import { getLatestQuizApi, saveQuizResultApi } from "../../api/api";
+import { getLatestQuizApi, saveQuizHistoryApi } from "../../api/api";
 import { useLogin, getToken } from "../../authConfig";
 import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ const Quiz: React.FC = () => {
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
     const useLoginEnabled = useLogin;
     const msalInstance = useLoginEnabled ? useMsal().instance : undefined;
@@ -42,11 +43,8 @@ const Quiz: React.FC = () => {
         setIsCorrect(null);
 
         try {
-
             let idToken: string | undefined;
             if (useLoginEnabled && msalInstance) {
-                idToken = await getToken(msalInstance);
-            } else if (msalInstance) {
                 idToken = await getToken(msalInstance);
             } else {
                 setError("msalInstance가 필요합니다.");
@@ -60,72 +58,26 @@ const Quiz: React.FC = () => {
                 return;
             }
 
-            // 로그인 정보 출력 **테스트용(운영시 삭제!!)**
-            if (msalInstance) {
-                const accounts = msalInstance.getAllAccounts();
-                console.log("로그인된 계정 정보:", accounts);
-
-                const token = await getToken(msalInstance);
-                console.log("ID Token:", token);
-            }
-
             const data = await getLatestQuizApi(idToken);
 
-            let quizArray: QuizItem[] = [];
-            if (data.quiz && typeof data.quiz === "string") {
-                try {
-                    quizArray = JSON.parse(data.quiz);
-                } catch {
-                    setError("퀴즈 데이터 파싱 오류");
-                    setLoading(false);
-                    return;
-                }
-            } else {
+            if (!data.quiz || !data.session_state) {
                 setError("퀴즈 데이터를 불러올 수 없습니다.");
                 setLoading(false);
                 return;
             }
+
+            let quizArray: QuizItem[] = [];
+            try {
+                quizArray = JSON.parse(data.quiz);
+            } catch {
+                setError("퀴즈 데이터 파싱 오류");
+                setLoading(false);
+                return;
+            }
+
             setQuizzes(quizArray);
             setSavedQuizzes(quizArray.map((quiz) => ({ ...quiz }))); // 저장용 배열 초기화
-
-            // Mock data for demonstration purposes
-//             const data = [
-//   {
-//     question: "삼키는 동안 기도가 보호되는 주된 방법은 무엇인가요?",
-//     choices: [
-//       "1. 후두(larynx)를 하강시킨다",
-//       "2. 하이오래인지얼 상승(hyolaryngeal elevation)을 통해 기도를 닫는다",
-//       "3. 연구개(soft palate)를 낮춘다",
-//       "4. 호흡을 빠르게 한다"
-//     ],
-//     answer: 2,
-//     explanation: "하이오래인지얼 상승은 하이오이드 뼈와 후두를 상승시켜 기도를 닫는 주요 보호 메커니즘입니다."
-//   },
-//   {
-//     question: "음식이 코로 들어가는 것을 방지하기 위해 삼키는 동안 어떤 구조가 상승되나요?",
-//     choices: [
-//       "1. 후두개(epiglottis)",
-//       "2. 연구개(soft palate)",
-//       "3. 혀(tongue)",
-//       "4. 식도(esophagus)"
-//     ],
-//     answer: 2,
-//     explanation: "삼키는 동안 연구개가 상승하여 인두협(pharyngeal isthmus)을 닫아 음식물이 비강으로 들어가는 것을 방지합니다."
-//   },
-//   {
-//     question: "삼키는 동안 호흡이 어떻게 조정되나요?",
-//     choices: [
-//       "1. 호흡이 일시적으로 멈춘다",
-//       "2. 호흡 속도가 빨라진다",
-//       "3. 호흡이 깊어진다",
-//       "4. 호흡 패턴이 변하지 않는다"
-//     ],
-//     answer: 1,
-//     explanation: "삼키는 동안 호흡이 일시적으로 멈추며, 음식물이 기도로 들어가지 않도록 보호합니다."
-//   }
-// ];
-//         setQuizzes(data);
-
+            setSessionId(data.session_state); // session_state를 저장
         } catch (e: any) {
             setError(e.message || "퀴즈 API 호출 중 오류가 발생했습니다.");
         }
@@ -136,7 +88,7 @@ const Quiz: React.FC = () => {
         if (!showResult) setSelectedChoice(idx);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (selectedChoice === null) return;
 
         const correct = quizzes[currentIdx].answer === selectedChoice + 1;
@@ -149,44 +101,52 @@ const Quiz: React.FC = () => {
             isCorrect: correct,
         };
 
-        setSavedQuizzes(updatedSavedQuizzes);
+        setSavedQuizzes(updatedSavedQuizzes); // 상태 업데이트
         setIsCorrect(correct);
         setShowResult(true);
-    };
 
-    const handleNext = async () => {
-        if (currentIdx < quizzes.length - 1) {
-            setCurrentIdx((prev) => prev + 1);
-            setSelectedChoice(null);
-            setShowResult(false);
-            setIsCorrect(null);
-        } else {
-            // 모든 퀴즈를 완료했을 때 저장
-            await saveQuizResults();
+        // 모든 퀴즈를 완료했는지 확인
+        if (currentIdx === quizzes.length - 1) {
+            // 마지막 퀴즈인 경우 savedQuizzes 업데이트 후 saveQuizHistory 호출
+            setTimeout(() => {
+                setSavedQuizzes((prev) => {
+                    saveQuizHistory(prev); // 업데이트된 savedQuizzes를 전달
+                    return prev;
+                });
+            }, 0);
         }
     };
 
-    const saveQuizResults = async () => {
-        console.log("저장된 퀴즈 데이터:", savedQuizzes);
-        // try {
-        //     const token = msalInstance ? await getToken(msalInstance) : null;
-        //     if (!token) {
-        //         console.error("유효한 토큰이 없습니다.");
-        //         return;
-        //     }
+    const handleNext = async () => {
+        setCurrentIdx((prev) => prev + 1);
+        setSelectedChoice(null);
+        setShowResult(false);
+        setIsCorrect(null);
+    };
 
-        //     await saveQuizResultApi(
-        //         {
-        //             id: "quiz-session", // 세션 ID 또는 고유 식별자
-        //             results: savedQuizzes, // 저장된 퀴즈 결과
-        //         },
-        //         token
-        //     );
+    const saveQuizHistory = async (quizzesToSave: QuizItem[] = savedQuizzes) => {
+        console.log("저장된 퀴즈 데이터:", quizzesToSave);
 
-        //     console.log("퀴즈 결과가 성공적으로 저장되었습니다.");
-        // } catch (error) {
-        //     console.error("퀴즈 결과 저장 실패:", error);
-        // }
+        try {
+            const token = msalInstance ? await getToken(msalInstance) : null;
+            if (!token) {
+                console.error("유효한 토큰이 없습니다.");
+                return;
+            }
+
+            // 히스토리 저장 API 호출
+            await saveQuizHistoryApi(
+                {
+                    id: sessionId, // 세션 ID (고유 값 생성)
+                    results: quizzesToSave, // 저장된 퀴즈 결과
+                },
+                token
+            );
+
+            console.log("퀴즈 히스토리가 성공적으로 저장되었습니다.");
+        } catch (error) {
+            console.error("퀴즈 히스토리 저장 실패:", error);
+        }
     };
 
     // 화면 진입 시 퀴즈 자동 불러오기
@@ -257,8 +217,7 @@ const Quiz: React.FC = () => {
                                     퀴즈가 모두 끝났습니다!{" "}
                                     <Link to="/outro" className={styles.link}>
                                         학습 정리
-                                    </Link>
-                                    로 이동하세요.
+                                    </Link> 로 이동하세요.
                                 </div>
                             )}
                         </div>

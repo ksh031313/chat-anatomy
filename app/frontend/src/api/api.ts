@@ -226,16 +226,16 @@ export async function postAskHistoryApi(item: any, idToken: string): Promise<any
     return dataResponse;
 }
 
-export async function saveQuizResultApi(item: any, idToken: string): Promise<any> {
+export async function saveQuizHistoryApi(item: any, idToken: string): Promise<any> {
     const headers = await getHeaders(idToken);
-    const response = await fetch("/quiz_results", {
+    const response = await fetch("/quiz_history", {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(item),
     });
 
     if (!response.ok) {
-        throw new Error(`Saving quiz results failed: ${response.statusText}`);
+        throw new Error(`Saving quiz history failed: ${response.statusText}`);
     }
 
     const dataResponse: any = await response.json();

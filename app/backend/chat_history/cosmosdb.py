@@ -101,39 +101,68 @@ async def post_ask_history(auth_claims: dict[str, Any]):
         title = first_question + "..." if len(first_question) > 50 else first_question
         timestamp = int(time.time() * 1000)
 
-        # Insert the session item:
-        session_item = {
+        separated_message_pairs = [
+            {"input_content": message_pair[0], "response_content": message_pair[1]} for message_pair in message_pairs
+        ]
+
+        # Insert the ask_item with message_pairs included:
+        ask_item = {
             "id": session_id,
             "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
             "session_id": session_id,
             "entra_oid": entra_oid,
-            "type": "session",
+            "type": "ask_item",
             "title": title,
             "timestamp": timestamp,
+            "message_pairs": separated_message_pairs,
         }
 
-        message_pair_items = []
-        # Now insert a message item for each question/response pair:
-        for ind, message_pair in enumerate(message_pairs):
-            message_pair_items.append(
-                {
-                    "id": f"{session_id}-{ind}",
-                    "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
-                    "session_id": session_id,
-                    "entra_oid": entra_oid,
-                    "type": "message_pair",
-                    "question": message_pair[0],
-                    "response": message_pair[1],
-                }
-            )
-
-        batch_operations = [("upsert", (session_item,))] + [
-            ("upsert", (message_pair_item,)) for message_pair_item in message_pair_items
-        ]
-        await container.execute_item_batch(batch_operations=batch_operations, partition_key=[entra_oid, session_id])
+        # Save the ask_item to the container
+        await container.upsert_item(ask_item)
         return jsonify({}), 201
     except Exception as error:
         return error_response(error, "/ask_history")
+
+
+@chat_history_cosmosdb_bp.post("/quiz_history")
+@authenticated
+async def post_quiz_history(auth_claims: dict[str, Any]):
+    if not current_app.config[CONFIG_CHAT_HISTORY_COSMOS_ENABLED]:
+        return jsonify({"error": "Quiz history not enabled"}), 400
+
+    # 실제 quiz-history-v2 컨테이너를 가져오도록 수정
+    cosmos_client: CosmosClient = current_app.config[CONFIG_COSMOS_HISTORY_CLIENT]
+    cosmos_db = cosmos_client.get_database_client(os.getenv("AZURE_CHAT_HISTORY_DATABASE"))
+    container: ContainerProxy = cosmos_db.get_container_client("quiz-history-v2")
+    if not container:
+        return jsonify({"error": "Quiz history not enabled"}), 400
+
+    entra_oid = auth_claims.get("oid")
+    if not entra_oid:
+        return jsonify({"error": "User OID not found"}), 401
+
+    try:
+        request_json = await request.get_json()
+        session_id = request_json.get("id")
+        quizzes = request_json.get("results")  # savedQuizzes 형태의 데이터
+        timestamp = int(time.time() * 1000)
+
+        # 모든 퀴즈 데이터를 하나의 문서로 저장
+        quiz_item = {
+            "id": session_id,
+            "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
+            "session_id": session_id,
+            "entra_oid": entra_oid,
+            "type": "quiz_item",
+            "timestamp": timestamp,
+            "quizzes": quizzes,  # 모든 퀴즈 데이터를 포함
+        }
+
+        # Batch operations for session and quiz items
+        await container.upsert_item(quiz_item) 
+        return jsonify({}), 201
+    except Exception as error:
+        return error_response(error, "/quiz_history")
 
 
 @chat_history_cosmosdb_bp.get("/chat_history/sessions")

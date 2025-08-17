@@ -429,12 +429,20 @@ async def quiz(auth_claims: dict[str, Any]):
     """
     프론트엔드에서 호출: 최근 대화 히스토리 기반 퀴즈 생성 및 반환
     """
-    # 더미 인증 정보 사용 (테스트용)
-    # auth_claims = {"oid": "test-oid", "name": "테스트유저"}
-    
-    result = await get_latest_quiz(auth_claims)
-    status = 200 if "quiz" in result else 400
-    return jsonify(result), status
+    try:
+        session_state = create_session_id(
+            current_app.config[CONFIG_CHAT_HISTORY_COSMOS_ENABLED],
+            current_app.config[CONFIG_CHAT_HISTORY_BROWSER_ENABLED],
+        )
+
+        # 퀴즈 생성
+        result = await get_latest_quiz(auth_claims)
+        result["session_state"] = session_state
+
+        status = 200 if "quiz" in result else 400
+        return jsonify(result), status
+    except Exception as error:
+        return error_response(error, "/quiz")
 
 
 @bp.before_app_serving

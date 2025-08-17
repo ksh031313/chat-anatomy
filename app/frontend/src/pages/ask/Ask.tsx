@@ -105,6 +105,8 @@ export function Component(): JSX.Element {
         getConfig();
     }, []);
 
+    const callIndexRef = useRef<number>(0); // Ref to track the call index
+
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
@@ -155,17 +157,20 @@ export function Component(): JSX.Element {
             setAnswer(result);
             setSpeechUrls([null]);
 
-            // ask-history-v2 컨테이너에 저장
-            // id는 result.session_state, answers는 [[질문, 답변]] 배열로 저장
+            // Increment the call index
+            const currentCallIndex = callIndexRef.current++;
+            
+            // Append the call index to the session_state
             if (result && result.session_state && result.message && result.message.content && token) {
                 await postAskHistoryApi(
                     {
-                        id: result.session_state,
+                        id: `${result.session_state}-${currentCallIndex}`, // Append the call index
                         answers: [[question, result.message.content]]
                     },
                     token
                 );
             }
+            
         } catch (e) {
             setError(e);
         } finally {
