@@ -12,6 +12,7 @@ import Intro from "./pages/intro/Intro";
 import LayoutWrapper from "./layoutWrapper";
 import i18next from "./i18n/config";
 import Outro from "./pages/outro/Outro";
+import Test from "./pages/test/Test";
 
 initializeIcons();
 
@@ -42,6 +43,10 @@ const router = createHashRouter([
             {
                 path: "outro",
                 element: <Outro />
+            },
+            {
+                path: "test",
+                element: <Test />
             },
             {
                 path: "*",

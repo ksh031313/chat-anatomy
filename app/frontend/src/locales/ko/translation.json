@@ -49,7 +49,7 @@
         "1": "Compare the impact of interest rates and GDP in financial markets.",
         "2": "What is the expected trend for the S&P 500 index over the next five years? Compare it to the past S&P 500 performance",
         "3": "Can you identify any correlation between oil prices and stock market trends?",
-        "placeholder": "Example: 근육은 우리 몸의 움직임을 담당하는 조직으로, 골격근, 심장근, 평활근으로 나뉜다."
+        "placeholder": "Type your content"
     },
     "generatingAnswer": "Generating answer",
     "citationWithColon": "Citation:",
