@@ -31,3 +31,5 @@ python-dotenv
 prompty
 rich
 typing-extensions
+pyodbc
+pytz

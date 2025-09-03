@@ -57,6 +57,7 @@ from approaches.retrievethenread import RetrieveThenReadApproach
 from approaches.retrievethenreadvision import RetrieveThenReadVisionApproach
 from approaches.quiz import get_latest_quiz, quiz_bp
 from chat_history.cosmosdb import chat_history_cosmosdb_bp
+from activity_history.user_activity import activity_history_bp
 from config import (
     CONFIG_ASK_APPROACH,
     CONFIG_ASK_VISION_APPROACH,
@@ -805,6 +806,7 @@ def create_app():
     app.register_blueprint(bp)
     app.register_blueprint(chat_history_cosmosdb_bp)
     app.register_blueprint(quiz_bp)  # quiz_bp 등록
+    app.register_blueprint(activity_history_bp)  # activity_history_bp 등록
 
     if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
         app.logger.info("APPLICATIONINSIGHTS_CONNECTION_STRING is set, enabling Azure Monitor")

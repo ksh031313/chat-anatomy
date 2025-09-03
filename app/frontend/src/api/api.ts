@@ -241,3 +241,19 @@ export async function saveQuizHistoryApi(item: any, idToken: string): Promise<an
     const dataResponse: any = await response.json();
     return dataResponse;
 }
+
+export async function saveUserActivityApi(item: any, idToken: string): Promise<any> {
+    const headers = await getHeaders(idToken);
+    const response = await fetch("/user_activity", {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ item }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Saving user activity failed: ${response.statusText}`);
+    }
+
+    const dataResponse: any = await response.json();
+    return dataResponse;
+}
