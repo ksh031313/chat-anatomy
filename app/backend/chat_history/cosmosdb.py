@@ -35,6 +35,7 @@ async def post_chat_history(auth_claims: dict[str, Any]):
 
     try:
         request_json = await request.get_json()
+        web_session_id = request_json.get("web_session_id")
         session_id = request_json.get("id")
         message_pairs = request_json.get("answers")
         first_question = message_pairs[0][0]
@@ -45,6 +46,7 @@ async def post_chat_history(auth_claims: dict[str, Any]):
         session_item = {
             "id": session_id,
             "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
+            "web_session_id": web_session_id,
             "session_id": session_id,
             "entra_oid": entra_oid,
             "type": "session",
@@ -59,6 +61,7 @@ async def post_chat_history(auth_claims: dict[str, Any]):
                 {
                     "id": f"{session_id}-{ind}",
                     "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
+                    "web_session_id": web_session_id,
                     "session_id": session_id,
                     "entra_oid": entra_oid,
                     "type": "message_pair",
@@ -144,6 +147,7 @@ async def post_quiz_history(auth_claims: dict[str, Any]):
     try:
         request_json = await request.get_json()
         session_id = request_json.get("id")
+        web_session_id = request_json.get("web_session_id")  # web_session_id 가져오기
         quizzes = request_json.get("results")  # savedQuizzes 형태의 데이터
         timestamp = int(time.time() * 1000)
 
@@ -152,6 +156,7 @@ async def post_quiz_history(auth_claims: dict[str, Any]):
             "id": session_id,
             "version": current_app.config[CONFIG_COSMOS_HISTORY_VERSION],
             "session_id": session_id,
+            "web_session_id": web_session_id,  # web_session_id 추가
             "entra_oid": entra_oid,
             "type": "quiz_item",
             "timestamp": timestamp,

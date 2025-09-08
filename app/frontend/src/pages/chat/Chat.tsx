@@ -37,6 +37,7 @@ import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
 import { LoginContext } from "../../loginContext";
 import { LanguagePicker } from "../../i18n/LanguagePicker";
 import { Settings } from "../../components/Settings/Settings";
+import { logUserActivity } from "../../utils/activityLogger";
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -92,7 +93,6 @@ const Chat = () => {
     const [showChatHistoryCosmos, setShowChatHistoryCosmos] = useState<boolean>(false);
     const audio = useRef(new Audio()).current;
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isExample, setIsExample] = useState(false);
 
     const speechConfig: SpeechConfig = {
         speechUrls,
@@ -240,10 +240,9 @@ const Chat = () => {
             if (shouldStream) {
                 const parsedResponse: ChatAppResponse = await handleAsyncRequest(question, answers, response.body);
                 setAnswers([...answers, [question, parsedResponse]]);
-                // 예시 클릭이 아닐 때만 히스토리 저장
-                if (!isExample && typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
+                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token);
+                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token, sessionStorage.getItem("web_session_id") || "");
                 }
             } else {
                 const parsedResponse: ChatAppResponseOrError = await response.json();
@@ -251,9 +250,9 @@ const Chat = () => {
                     throw Error(parsedResponse.error);
                 }
                 setAnswers([...answers, [question, parsedResponse as ChatAppResponse]]);
-                if (!isExample && typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
+                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token);
+                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token, sessionStorage.getItem("web_session_id") || "");
                 }
             }
             setSpeechUrls([...speechUrls, null]);
@@ -261,7 +260,6 @@ const Chat = () => {
             setError(e);
         } finally {
             setIsLoading(false);
-            setIsExample(false); // 요청 끝나면 예시 상태 초기화
         }
     };
 
@@ -282,6 +280,9 @@ const Chat = () => {
     useEffect(() => {
         getConfig();
     }, []);
+    useEffect(() => {
+        logUserActivity(client, "/chat", "page_visit", "User visited the Chat page");
+    }, [client]);
 
     const handleSettingsChange = (field: string, value: any) => {
         switch (field) {
@@ -349,7 +350,6 @@ const Chat = () => {
     };
 
     const onExampleClicked = (example: string) => {
-        setIsExample(true);
         makeApiRequest(example);
     };
 

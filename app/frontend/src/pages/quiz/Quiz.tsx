@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { DefaultButton, Spinner, Panel, PanelType, IconButton } from "@fluentui/react";
-import { getLatestQuizApi, saveQuizHistoryApi } from "../../api/api";
+import { getLatestQuizApi, saveQuizHistoryApi, saveUserActivityApi } from "../../api/api"; // saveUserActivityApi 추가
 import { useLogin, getToken } from "../../authConfig";
 import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Quiz.module.css";
+import { logUserActivity } from "../../utils/activityLogger";
 
 type QuizItem = {
     question: string;
@@ -31,6 +32,11 @@ const Quiz: React.FC = () => {
     const useLoginEnabled = useLogin;
     const msalInstance = useLoginEnabled ? useMsal().instance : undefined;
     const navigate = useNavigate();
+
+    // 화면 접속 시 user_activity 저장
+    useEffect(() => {
+        logUserActivity(msalInstance, "/quiz", "page_visit", "User visited the Quiz page");
+    }, [msalInstance]);
 
     const handleGetQuiz = async () => {
         setLoading(true);
@@ -134,10 +140,13 @@ const Quiz: React.FC = () => {
                 return;
             }
 
+            const webSessionId = sessionStorage.getItem("web_session_id"); // web_session_id 가져오기
+
             // 히스토리 저장 API 호출
             await saveQuizHistoryApi(
                 {
                     id: sessionId, // 세션 ID (고유 값 생성)
+                    web_session_id: webSessionId, // web_session_id 추가
                     results: quizzesToSave, // 저장된 퀴즈 결과
                 },
                 token

@@ -1,37 +1,25 @@
-import React, { useEffect } from 'react';
-// import { v4 as uuidv4 } from 'uuid';
-import { saveUserActivityApi } from '../../api/api';
+import React, { useEffect } from "react";
+import { useMsal } from "@azure/msal-react";
+import { useLogin } from "../../authConfig";
+import { logUserActivity } from "../../utils/activityLogger";
 
 const Test = () => {
-  // Generate and store session_id if not already present
-  useEffect(() => {
-    const existingSessionId = sessionStorage.getItem('session_id');
-    if (!existingSessionId) {
-      const newSessionId = "01234567"// uuidv4();
-      sessionStorage.setItem('session_id', newSessionId);
-    }
-  }, []);
+  const client = useLogin ? useMsal().instance : undefined;
 
-  const handleApiCall = async () => {
-    try {
-      const idToken = 'your-id-token'; // Replace with actual token retrieval logic
-      const activity = {
-        session_id: sessionStorage.getItem('session_id'),
-        page: '/test', // Current page path
-        activityType: 'button_click', // Type of activity
-        activityContent: 'User clicked the Save User Activity button', // Description of the activity
-      };
-      const result = await saveUserActivityApi(activity, idToken);
-      console.log('Activity saved:', result);
-    } catch (error) {
-      console.error('Error occurred while saving activity:', error);
-    }
+  // 화면 접속 시 로그 저장
+  useEffect(() => {
+    logUserActivity(client, "/test", "page_visit", "User visited the Test page");
+  }, [client]);
+
+  // 버튼 클릭 시 로그 저장
+  const handleButtonClick = () => {
+    logUserActivity(client, "/test", "button_click", "User clicked the Test button");
   };
 
   return (
     <div>
       <h1>Test Page</h1>
-      <button onClick={handleApiCall}>Save User Activity</button>
+      <button onClick={handleButtonClick}>Log Activity</button>
     </div>
   );
 };

@@ -1,17 +1,21 @@
+from typing import Any
 import pyodbc
 from datetime import datetime
 from pytz import timezone
 from quart import Blueprint, request, current_app
 from decorators import authenticated
 from error import error_response
+import logging
+import uuid  # 추가
 
 # Database connection configuration
 DB_SERVER = 'dbs-anatomy-01.database.windows.net'
 DB_NAME = 'db-anatomy-01'
-DB_AUTHENTICATION = 'Active Directory Managed Identity'
-DB_ENCRYPT = True
+DB_AUTHENTICATION = 'ActiveDirectoryMsi'
+DB_ENCRYPT = 'yes'
 
 activity_history_bp = Blueprint("activity_history", __name__)
+logging.basicConfig(level=logging.INFO)  # Set log level to INFO 
 
 def get_db_connection():
     """Establish a connection to the Azure SQL Database using Managed Identity."""
@@ -22,47 +26,51 @@ def get_db_connection():
         f"Authentication={DB_AUTHENTICATION};"
         f"Encrypt={DB_ENCRYPT};"
     )
-    return pyodbc.connect(connection_string)
+    try:
+        return pyodbc.connect(connection_string)
+    except pyodbc.Error as e:
+        logging.error(f"Database connection failed: {e}")
+        # Return None or raise a custom exception to handle the error gracefully
+        return None
 
 @activity_history_bp.post("/user_activity")
 @authenticated
-async def post_user_activity(auth_claims):
+async def post_user_activity(auth_claims: dict[str, Any]):
     """Save user activity to the Azure SQL Database."""
     conn = None
     try:
-        # Extract user_id from auth_claims
+        logging.info(f"post_user_activity: auth_claims={auth_claims}")
         user_id = auth_claims.get("oid")
-
-        # Parse request JSON
         request_json = await request.get_json()
         page = request_json.get("page")
-        activity_type = request_json.get("activityType")
-        activity_content = request_json.get("activityContent")
-        # Extract session_id from request JSON
-        session_id = request_json.get("session_id")
+        activity_type = request_json.get("activity_type")
+        activity_content = request_json.get("activity_content")
+        web_session_id = request_json.get("web_session_id")
 
-        if not user_id or not session_id:
-            return error_response("Missing user_id or session_id", "/user_activity")
+        # sessionId가 없으면 UUID 생성
+        if not web_session_id:
+            web_session_id = str(uuid.uuid4())
+            logging.info(f"Generated new web_session_id: {web_session_id}")
 
-        if not page or not activity_type or not activity_content:
-            return error_response("Missing required activity fields", "/user_activity")
-
-        # Set the activity time on the backend
         seoul_tz = timezone('Asia/Seoul')
         activity_time = datetime.now(seoul_tz).strftime('%Y-%m-%d %H:%M:%S')
 
-        # Save to the database
         conn = get_db_connection()
+        if conn is None:
+            # Handle the case where the database connection failed
+            return {"message": "Failed to connect to the database. Please try again later."}, 500
+
         cursor = conn.cursor()
 
         insert_query = """
-        INSERT INTO user_activity (userId, sessionId, page, activityType, activityContent, activityTime)
+        INSERT INTO user_activity (user_id, web_session_id, page, activity_type, activity_content, activity_time)
         VALUES (?, ?, ?, ?, ?, ?)
         """
-        cursor.execute(insert_query, (user_id, session_id, page, activity_type, activity_content, activity_time))
+        cursor.execute(insert_query, (user_id, web_session_id, page, activity_type, activity_content, activity_time))
         conn.commit()
 
-        return {"message": "User activity saved successfully."}, 201
+        # web_session_id를 응답에 포함
+        return {"message": "User activity saved successfully.", "web_session_id": web_session_id}, 201
 
     except Exception as e:
         current_app.logger.error(f"An error occurred while saving user activity: {e}")

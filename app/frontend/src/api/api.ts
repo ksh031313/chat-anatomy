@@ -127,7 +127,7 @@ export async function listUploadedFilesApi(idToken: string): Promise<string[]> {
     return dataResponse;
 }
 
-export async function postChatHistoryApi(item: any, idToken: string): Promise<any> {
+export async function postChatHistoryApi(item: any, idToken: string, web_session_id?: string): Promise<any> {
     const headers = await getHeaders(idToken);
     const response = await fetch("/chat_history", {
         method: "POST",
@@ -242,12 +242,12 @@ export async function saveQuizHistoryApi(item: any, idToken: string): Promise<an
     return dataResponse;
 }
 
-export async function saveUserActivityApi(item: any, idToken: string): Promise<any> {
+export async function saveUserActivityApi(item: any, idToken: string | undefined): Promise<any> {
     const headers = await getHeaders(idToken);
     const response = await fetch("/user_activity", {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ item }),
+        body: JSON.stringify(item),
     });
 
     if (!response.ok) {
