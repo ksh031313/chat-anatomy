@@ -52,7 +52,7 @@ async def fetch_latest_chat_history(auth_claims: dict[str, Any], container) -> L
 
     async for page in res.by_page():
         async for item in page:
-            message_pairs.append([item["question"], item["response"]])
+            message_pairs.append([item["question"], item["response"]["message"]["content"]])
     logging.info(f"fetch_latest_chat_history: message_pairs_count={len(message_pairs)}")
 
     if not message_pairs:
@@ -119,7 +119,7 @@ class QuizGenerator(Approach):
             self.chatgpt_model,
             messages=prompt_messages,
             overrides={},
-            response_token_limit=800,
+            response_token_limit=1500,
             temperature=0.7,
         )
 

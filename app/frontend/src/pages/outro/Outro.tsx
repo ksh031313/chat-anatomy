@@ -11,7 +11,7 @@ const Outro = () => {
     // 화면 접속 시 로그 저장
     useEffect(() => {
         logUserActivity(client, "/outro", "page_visit", "User visited the Outro page");
-    }, [client]);
+    }, []);
 
     return (
         <div className={styles.container}>

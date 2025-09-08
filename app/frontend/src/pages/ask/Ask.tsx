@@ -19,6 +19,7 @@ import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
 import { LoginContext } from "../../loginContext";
 import { LanguagePicker } from "../../i18n/LanguagePicker";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
+import { logUserActivity } from "../../utils/activityLogger";
 
 export function Component(): JSX.Element {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -103,6 +104,9 @@ export function Component(): JSX.Element {
 
     useEffect(() => {
         getConfig();
+    }, []);
+    useEffect(() => {
+        logUserActivity(client, "/Ask", "page_visit", "User visited the Ask page");
     }, []);
 
     const callIndexRef = useRef<number>(0); // Ref to track the call index

@@ -36,7 +36,7 @@ const Quiz: React.FC = () => {
     // 화면 접속 시 user_activity 저장
     useEffect(() => {
         logUserActivity(msalInstance, "/quiz", "page_visit", "User visited the Quiz page");
-    }, [msalInstance]);
+    }, []);
 
     const handleGetQuiz = async () => {
         setLoading(true);

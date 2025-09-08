@@ -282,7 +282,7 @@ const Chat = () => {
     }, []);
     useEffect(() => {
         logUserActivity(client, "/chat", "page_visit", "User visited the Chat page");
-    }, [client]);
+    }, []);
 
     const handleSettingsChange = (field: string, value: any) => {
         switch (field) {

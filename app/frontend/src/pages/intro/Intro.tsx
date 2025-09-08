@@ -12,7 +12,7 @@ const Intro = () => {
     // 화면 접속 시 로그 저장
     useEffect(() => {
         logUserActivity(client, "/intro", "page_visit", "User visited the Intro page");
-    }, [client]);
+    }, []);
 
     return (
         <div className={styles.container}>

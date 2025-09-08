@@ -9,7 +9,7 @@ const Test = () => {
   // 화면 접속 시 로그 저장
   useEffect(() => {
     logUserActivity(client, "/test", "page_visit", "User visited the Test page");
-  }, [client]);
+  }, []);
 
   // 버튼 클릭 시 로그 저장
   const handleButtonClick = () => {
