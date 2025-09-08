@@ -86,6 +86,7 @@ param chatHistoryVersion string = 'cosmosdb-v2'
   'swedencentral'
   'westus'
   'westus3'
+  'koreacentral'
 ])
 @metadata({
   azd: {
