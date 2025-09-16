@@ -5,9 +5,10 @@ import logging
 import mimetypes
 import os
 import time
+import httpx
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, Union, cast, List
 
 from azure.cognitiveservices.speech import (
     ResultReason,
@@ -30,6 +31,7 @@ from azure.storage.blob.aio import StorageStreamDownloader as BlobDownloader
 from azure.storage.filedatalake.aio import FileSystemClient
 from azure.storage.filedatalake.aio import StorageStreamDownloader as DatalakeDownloader
 from openai import AsyncAzureOpenAI, AsyncOpenAI
+from openai_priority_loadbalancer import AsyncLoadBalancer, Backend
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
 from opentelemetry.instrumentation.httpx import (
@@ -648,10 +650,23 @@ async def setup_clients():
         else:
             current_app.logger.info("Using Azure credential (passwordless authentication) for Azure OpenAI client")
             token_provider = get_bearer_token_provider(azure_credential, "https://cognitiveservices.azure.com/.default")
+            
+            client_args = {}
+            if AZURE_OPENAI_SERVICE_BACKEND2 := os.environ.get("AZURE_OPENAI_SERVICE_BACKEND2"):
+                backends: List[Backend] = [
+                    Backend(f"{AZURE_OPENAI_SERVICE}.openai.azure.com", 1),
+                    Backend(f"{AZURE_OPENAI_SERVICE_BACKEND2}.openai.azure.com", 1),
+                ]
+
+                lb = AsyncLoadBalancer(backends)
+                # Inject the load balancer as the transport in a new default httpx client
+                client_args["http_client"] = httpx.AsyncClient(transport=lb)
+
             openai_client = AsyncAzureOpenAI(
                 api_version=AZURE_OPENAI_API_VERSION,
                 azure_endpoint=endpoint,
                 azure_ad_token_provider=token_provider,
+                **client_args,
             )
     elif OPENAI_HOST == "local":
         current_app.logger.info("OPENAI_HOST is local, setting up local OpenAI client for OPENAI_BASE_URL with no key")

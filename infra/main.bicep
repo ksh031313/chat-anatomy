@@ -52,6 +52,7 @@ param isAzureOpenAiHost bool = startsWith(openAiHost, 'azure')
 param deployAzureOpenAi bool = openAiHost == 'azure'
 param azureOpenAiCustomUrl string = ''
 param azureOpenAiApiVersion string = ''
+param openAiServiceBackend2 string = ''
 @secure()
 param azureOpenAiApiKey string = ''
 param azureOpenAiDisableKeys bool = true
@@ -403,6 +404,7 @@ var appEnvVariables = {
   AZURE_OPENAI_REASONING_EFFORT: defaultReasoningEffort
   // Specific to Azure OpenAI
   AZURE_OPENAI_SERVICE: isAzureOpenAiHost && deployAzureOpenAi ? openAi.outputs.name : ''
+  AZURE_OPENAI_SERVICE_BACKEND2: isAzureOpenAiHost && deployAzureOpenAi ? openAiServiceBackend2 : ''
   AZURE_OPENAI_CHATGPT_DEPLOYMENT: chatGpt.deploymentName
   AZURE_OPENAI_EMB_DEPLOYMENT: embedding.deploymentName
   AZURE_OPENAI_GPT4V_DEPLOYMENT: useGPT4V ? gpt4v.deploymentName : ''

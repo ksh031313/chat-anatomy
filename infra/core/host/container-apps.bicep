@@ -59,11 +59,13 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.0
   }
 }
 
+var containerRegistryScope = empty(containerRegistryResourceGroupName)
+  ? resourceGroup()
+  : resourceGroup(containerRegistryResourceGroupName)
+
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' = {
   name: '${name}-container-registry'
-  scope: !empty(containerRegistryResourceGroupName)
-    ? resourceGroup(containerRegistryResourceGroupName)
-    : resourceGroup()
+  scope: containerRegistryScope
   params: {
     name: containerRegistryName
     location: location

@@ -131,6 +131,7 @@ httpx[http2]==0.27.0
     #   microsoft-kiota-http
     #   msgraph-core
     #   openai
+    #   openai-priority-loadbalancer
 hypercorn==0.17.3
     # via quart
 hyperframe==6.0.1
@@ -211,6 +212,8 @@ multidict==6.0.5
 oauthlib==3.2.2
     # via requests-oauthlib
 openai==1.63.0
+    # via -r requirements.in
+openai-priority-loadbalancer==1.1.0
     # via -r requirements.in
 opentelemetry-api==1.31.1
     # via

@@ -17,6 +17,9 @@
     "openAiServiceName": {
       "value": "${AZURE_OPENAI_SERVICE}"
     },
+    "openAiServiceBackend2": {
+      "value": "${AZURE_OPENAI_SERVICE_BACKEND2}"
+    },
     "openAiResourceGroupName": {
       "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
     },
