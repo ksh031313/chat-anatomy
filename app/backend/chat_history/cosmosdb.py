@@ -7,6 +7,7 @@ from azure.identity.aio import AzureDeveloperCliCredential, ManagedIdentityCrede
 from quart import Blueprint, current_app, jsonify, make_response, request
 
 from config import (
+    CONFIG_OPENAI_CLIENT,
     CONFIG_CHAT_HISTORY_COSMOS_ENABLED,
     CONFIG_COSMOS_HISTORY_CLIENT,
     CONFIG_COSMOS_HISTORY_CONTAINER,
@@ -17,6 +18,34 @@ from decorators import authenticated
 from error import error_response
 
 chat_history_cosmosdb_bp = Blueprint("chat_history_cosmos", __name__, static_folder="static")
+
+
+async def generate_chat_title(first_question: str) -> str:
+    """
+    LLM(OpenAI)을 이용해 30자 이내의 채팅방 제목을 생성합니다.
+    """
+    import logging
+    try:
+        openai_client = current_app.config[CONFIG_OPENAI_CLIENT]
+        chatgpt_model = os.environ["AZURE_OPENAI_CHATGPT_MODEL"]
+        chatgpt_deployment = os.environ.get("AZURE_OPENAI_CHATGPT_DEPLOYMENT")
+        prompt = (
+            "Summarize the following sentence as a chat room title within 30 characters. "
+            "Respond ONLY with the title, no explanation or extra text.\n"
+            f"Sentence: {first_question}\nTitle:"
+        )
+        completion = await openai_client.chat.completions.create(
+            model=chatgpt_deployment,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=30,
+            temperature=0.2,
+        )
+        title = completion.choices[0].message.content.strip()
+        return title
+    except Exception as e:
+        logging.error(f"generate_chat_title error: {e}", exc_info=True)
+        # 실패 시 fallback
+        return first_question[:30]
 
 
 @chat_history_cosmosdb_bp.post("/chat_history")
@@ -39,7 +68,8 @@ async def post_chat_history(auth_claims: dict[str, Any]):
         session_id = request_json.get("id")
         message_pairs = request_json.get("answers")
         first_question = message_pairs[0][0]
-        title = first_question + "..." if len(first_question) > 50 else first_question
+        # LLM을 이용해 30자 이내의 제목 생성
+        title = await generate_chat_title(first_question)
         timestamp = int(time.time() * 1000)
 
         # Insert the session item:

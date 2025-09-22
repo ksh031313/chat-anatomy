@@ -3,7 +3,7 @@ from typing import Any, List, Dict, Optional
 from quart import current_app, Blueprint, jsonify
 from openai.types.chat import ChatCompletionMessageParam
 from approaches.approach import Approach
-from approaches.promptmanager import PromptManager, PromptyManager
+from approaches.promptmanager import PromptyManager
 import logging
 import os
 from config import (
@@ -71,7 +71,7 @@ async def fetch_latest_chat_history(auth_claims: dict[str, Any], container) -> L
 class QuizGenerator(Approach):
     def __init__(
         self,
-        prompt_manager: PromptManager,
+        prompt_manager: PromptyManager,
         openai_client: AsyncOpenAI,
         chatgpt_model: str,
         chatgpt_deployment: Optional[str] = None,
@@ -83,20 +83,20 @@ class QuizGenerator(Approach):
         try:
             self.prompt_template = self.prompt_manager.load_prompt("quiz_generate.prompty")
         except Exception as e:
-            logging.error(f"PromptManager 프롬프트 로드 실패: {e}", exc_info=True)
+            logging.error(f"PromptyManager 프롬프트 로드 실패: {e}", exc_info=True)
             self.prompt_template = None
 
     async def run(
         self,
         messages: list[dict],
         session_state: any = None,
-        context: dict = {},
+        context: dict = None,
     ) -> dict:
         """
         Approach 인터페이스에 맞춘 run 메서드.
         messages: [{"role": "user", "content": "..."}] 형태
         """
-        # 예시: 마지막 메시지를 user query로 사용
+        context = context or {}
         message_pairs = context.get("message_pairs") or []
         logging.info(f"QuizGenerator.run: message_pairs={message_pairs}")
         if not self.prompt_template:
@@ -113,19 +113,20 @@ class QuizGenerator(Approach):
         )
         logging.info(f"QuizGenerator.run: prompt_messages={prompt_messages}")
 
-        # approach.py의 create_chat_completion 사용
-        chat_completion = await self.create_chat_completion(
-            self.chatgpt_deployment,
-            self.chatgpt_model,
-            messages=prompt_messages,
-            overrides={},
-            response_token_limit=1500,
-            temperature=0.7,
-        )
-
-        quiz_json = chat_completion.choices[0].message.content.strip()
-        logging.info(f"QuizGenerator.run: quiz_json={quiz_json}")
-        return {"quiz": quiz_json}
+        # Azure OpenAI 직접 호출
+        try:
+            chat_completion = await self.openai_client.chat.completions.create(
+                model=self.chatgpt_deployment,
+                messages=prompt_messages,
+                max_tokens=1500,
+                temperature=0.7,
+            )
+            quiz_json = chat_completion.choices[0].message.content.strip()
+            logging.info(f"QuizGenerator.run: quiz_json={quiz_json}")
+            return {"quiz": quiz_json}
+        except Exception as e:
+            logging.error(f"QuizGenerator.run: OpenAI 호출 실패: {e}", exc_info=True)
+            return {"error": str(e)}
 
 # get_latest_quiz에서 QuizGenerator 생성 시 config에서 값을 꺼내서 넘겨주세요.
 async def get_latest_quiz(auth_claims: dict[str, Any]) -> Dict[str, Any]:
