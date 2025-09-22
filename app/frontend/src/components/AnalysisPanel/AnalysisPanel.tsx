@@ -77,12 +77,19 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
             selectedKey={activeTab}
             onLinkClick={pivotItem => pivotItem && onActiveTabChanged(pivotItem.props.itemKey! as AnalysisPanelTabs)}
         >
-            <PivotItem
+            {/* <PivotItem
                 itemKey={AnalysisPanelTabs.ThoughtProcessTab}
                 headerText={t("headerTexts.thoughtProcess")}
                 headerButtonProps={isDisabledThoughtProcessTab ? pivotItemDisabledStyle : undefined}
             >
                 <ThoughtProcess thoughts={answer.context.thoughts || []} />
+            </PivotItem> */}
+            <PivotItem
+                itemKey={AnalysisPanelTabs.CitationTab}
+                headerText={t("headerTexts.citation")}
+                headerButtonProps={isDisabledCitationTab ? pivotItemDisabledStyle : undefined}
+            >
+                {renderFileViewer()}
             </PivotItem>
             <PivotItem
                 itemKey={AnalysisPanelTabs.SupportingContentTab}
@@ -90,13 +97,6 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
                 headerButtonProps={isDisabledSupportingContentTab ? pivotItemDisabledStyle : undefined}
             >
                 <SupportingContent supportingContent={answer.context.data_points} />
-            </PivotItem>
-            <PivotItem
-                itemKey={AnalysisPanelTabs.CitationTab}
-                headerText={t("headerTexts.citation")}
-                headerButtonProps={isDisabledCitationTab ? pivotItemDisabledStyle : undefined}
-            >
-                {renderFileViewer()}
             </PivotItem>
         </Pivot>
     );

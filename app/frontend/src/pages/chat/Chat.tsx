@@ -41,7 +41,7 @@ import { logUserActivity } from "../../utils/activityLogger";
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true); // 기본값을 true로 변경
     const [promptTemplate, setPromptTemplate] = useState<string>("");
     const [temperature, setTemperature] = useState<number>(0.3);
     const [seed, setSeed] = useState<number | null>(null);
@@ -392,7 +392,6 @@ const Chat = () => {
                     <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                     {showUserUpload && <UploadFile className={styles.commandButton} disabled={!loggedIn} />}
                     {/* <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} /> */}
-                    {/* Help 버튼 추가 */}
                 </div>
             </div>
             <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? "300px" : "0" }}>

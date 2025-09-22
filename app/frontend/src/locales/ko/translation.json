@@ -60,7 +60,7 @@
         "askWithVoice": "Ask question with voice",
         "stopRecording": "Stop recording question",
         "showThoughtProcess": "Show thought process",
-        "showSupportingContent": "Show supporting content",
+        "showSupportingContent": "RAG검색 결과 보기",
         "speakAnswer": "Speak answer",
         "info": "Info",
         "save": "Save",
@@ -70,7 +70,7 @@
 
     "headerTexts":{
         "thoughtProcess": "Thought Process",
-        "supportingContent": "Supporting Content",
+        "supportingContent": "RAG 검색 결과",
         "citation": "Citation"
     },
 

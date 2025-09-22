@@ -13,10 +13,13 @@ export const SupportingContent = ({ supportingContent }: Props) => {
         <ul className={styles.supportingContentNavList}>
             {textItems.map((c, ind) => {
                 const parsed = parseSupportingContentItem(c);
+                const sentences = parsed.content.split(".").map(s => s.trim()).filter(Boolean);
+                const trimmedContent = sentences.slice(1, -1).join(". ") + (sentences.length > 2 ? "." : "");
+
                 return (
                     <li className={styles.supportingContentItem} key={`supporting-content-text-${ind}`}>
                         <h4 className={styles.supportingContentItemHeader}>{parsed.title}</h4>
-                        <p className={styles.supportingContentItemText} dangerouslySetInnerHTML={{ __html: parsed.content }} />
+                        <p className={styles.supportingContentItemText} dangerouslySetInnerHTML={{ __html: trimmedContent }} />
                     </li>
                 );
             })}
