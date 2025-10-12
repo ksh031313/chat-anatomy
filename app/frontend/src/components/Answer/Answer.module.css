@@ -37,6 +37,22 @@ h2 {
     padding: 0.3125em;
 }
 
+
+.answerSummaryPrompt {
+    margin: 1em 0 0 0;
+    padding: 0.75em 1em;
+    background: #eef2fb;
+    border-radius: 0.5em;
+    color: #234;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    border: 1px solid #d1dbfa;
+    letter-spacing: 0.01em;
+    transition: background 0.2s;
+}
+
 .selected {
     outline: 0.125em solid rgba(115, 118, 225, 1);
 }

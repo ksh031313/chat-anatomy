@@ -101,6 +101,11 @@ export const Answer = ({
             <Stack.Item grow>
                 <div className={styles.answerText}>
                     <ReactMarkdown children={sanitizedAnswerHtml} rehypePlugins={[rehypeRaw]} remarkPlugins={[remarkGfm]} />
+                    {(index + 1) % 3 === 0 && (
+                        <div className={styles.answerSummaryPrompt}>
+                            지금까지 대화한 내용을 정리해볼까?
+                        </div>
+                    )}
                 </div>
             </Stack.Item>
 
