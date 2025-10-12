@@ -18,7 +18,8 @@ import {
     ResponseMessage,
     VectorFieldOptions,
     GPT4VInput,
-    SpeechConfig
+    SpeechConfig,
+    getCitationFilePath
 } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
@@ -38,6 +39,7 @@ import { LoginContext } from "../../loginContext";
 import { LanguagePicker } from "../../i18n/LanguagePicker";
 import { Settings } from "../../components/Settings/Settings";
 import { logUserActivity } from "../../utils/activityLogger";
+import { parseAnswerToHtml } from "../../components/Answer/AnswerParser";
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -69,6 +71,7 @@ const Chat = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
+    const [isHistorySaved, setIsHistorySaved] = useState(true);
     const [error, setError] = useState<unknown>();
 
     const [activeCitation, setActiveCitation] = useState<string>();
@@ -185,10 +188,14 @@ const Chat = () => {
     const historyManager = useHistoryManager(historyProvider);
 
     const makeApiRequest = async (question: string) => {
+        const activity_content = `length: ${question.length}, content: ${question}`;
+        logUserActivity(client, "/chat", "chat_input", activity_content);
+
         lastQuestionRef.current = question;
 
         error && setError(undefined);
         setIsLoading(true);
+        setIsHistorySaved(false);
         setActiveCitation(undefined);
         setActiveAnalysisPanelTab(undefined);
 
@@ -242,7 +249,8 @@ const Chat = () => {
                 setAnswers([...answers, [question, parsedResponse]]);
                 if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token, sessionStorage.getItem("web_session_id") || "");
+                    await historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token, sessionStorage.getItem("web_session_id") || "");
+                    setTimeout(() => setIsHistorySaved(true), 1000); // 1초 딜레이 후 true로 변경
                 }
             } else {
                 const parsedResponse: ChatAppResponseOrError = await response.json();
@@ -252,7 +260,8 @@ const Chat = () => {
                 setAnswers([...answers, [question, parsedResponse as ChatAppResponse]]);
                 if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
                     const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token, sessionStorage.getItem("web_session_id") || "");
+                    await historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token, sessionStorage.getItem("web_session_id") || "");
+                    setTimeout(() => setIsHistorySaved(true), 1000); // 1초 딜레이 후 true로 변경
                 }
             }
             setSpeechUrls([...speechUrls, null]);
@@ -273,6 +282,7 @@ const Chat = () => {
         setStreamedAnswers([]);
         setIsLoading(false);
         setIsStreaming(false);
+        setIsHistorySaved(false);
     };
 
     useEffect(() => chatMessageStreamEnd.current?.scrollIntoView({ behavior: "smooth" }), [isLoading]);
@@ -283,6 +293,19 @@ const Chat = () => {
     useEffect(() => {
         logUserActivity(client, "/chat", "page_visit", "User visited the Chat page");
     }, []);
+    // 최근 답변의 첫 번째 citation 자동 클릭
+    useEffect(() => {
+        if (!isStreaming && answers.length > 0) {
+        const lastAnswer = answers[answers.length - 1][1];
+        const parsed = parseAnswerToHtml(lastAnswer, false, () => {});
+        const citations = Array.isArray(parsed.citations) ? parsed.citations : [];
+            if (citations.length > 0) {
+                const firstCitation = citations[0];
+                const path = getCitationFilePath(firstCitation);
+                onShowCitation(path, answers.length - 1);
+            }
+        }
+    }, [answers, isStreaming]);
 
     const handleSettingsChange = (field: string, value: any) => {
         switch (field) {
@@ -510,7 +533,7 @@ const Chat = () => {
                     <HistoryPanel
                         provider={historyProvider}
                         isOpen={isHistoryPanelOpen}
-                        notify={!isStreaming && !isLoading}
+                        notify={!isStreaming && !isLoading && isHistorySaved}
                         onClose={() => setIsHistoryPanelOpen(false)}
                         onChatSelected={answers => {
                             if (answers.length === 0) return;
