@@ -184,7 +184,7 @@ async def summarize_latest_chat_history(auth_claims: dict[str, Any]) -> Dict[str
         # 요약 프롬프트 생성
         prompt = (
             "다음은 최근 사용자와 챗봇의 대화 내용입니다.\n"
-            "이 대화 내용을 구조화 하여 요약해 주세요.\n"
+            "이 대화 내용을 Markdown 형식으로 구조화 하여 1000자 이내로 요약해 주세요.\n"
             "대화 내용:\n"
             f"{history_text}\n"
             "요약:"
@@ -195,7 +195,7 @@ async def summarize_latest_chat_history(auth_claims: dict[str, Any]) -> Dict[str
         completion = await openai_client.chat.completions.create(
             model=chatgpt_deployment,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
+            max_tokens=800,
             temperature=0.5,
         )
         summary = completion.choices[0].message.content.strip()

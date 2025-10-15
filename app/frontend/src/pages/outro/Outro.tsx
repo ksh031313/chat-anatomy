@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useMsal } from "@azure/msal-react";
 import { useLogin, getToken } from "../../authConfig";
 import { logUserActivity } from "../../utils/activityLogger";
@@ -71,7 +73,9 @@ const Outro = () => {
                     ) : error ? (
                         <span className={styles.error}>{error}</span>
                     ) : (
-                        <div className={styles.summaryBox}>{summary}</div>
+                        <div className={styles.summaryBox}>
+                            <ReactMarkdown children={summary} remarkPlugins={[remarkGfm]} />
+                        </div>
                     )}
                     {/* 퀴즈 결과 영역을 요약 아래에 위치 */}
                     <div className={styles.quizResultSection}>
