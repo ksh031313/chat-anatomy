@@ -188,7 +188,7 @@ const Chat = () => {
     const historyManager = useHistoryManager(historyProvider);
 
     const makeApiRequest = async (question: string) => {
-        const activity_content = `length: ${question.length}, content: ${question}`;
+        const activity_content = `retrievalMode: ${retrievalMode}, length: ${question.length}, content: ${question}`;
         logUserActivity(client, "/chat", "chat_input", activity_content);
 
         lastQuestionRef.current = question;
@@ -401,7 +401,6 @@ const Chat = () => {
 
     return (
         <div className={styles.container}>
-            {/* Setting the page title using react-helmet-async */}
             <Helmet>
                 <title>AI 튜터에 질문하세요.</title>
             </Helmet>
@@ -414,7 +413,7 @@ const Chat = () => {
                 <div className={styles.commandsContainer}>
                     <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                     {showUserUpload && <UploadFile className={styles.commandButton} disabled={!loggedIn} />}
-                    {/* <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} /> */}
+                    <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                 </div>
             </div>
             <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? "300px" : "0" }}>

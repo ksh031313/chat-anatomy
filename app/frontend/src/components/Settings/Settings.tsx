@@ -160,128 +160,132 @@ export const Settings = ({
                 onRenderLabel={props => renderLabel(props, seedId, seedFieldId, t("helpTexts.seed"))}
             />
 
-            <TextField
-                id={searchScoreFieldId}
-                className={styles.settingsSeparator}
-                label={t("labels.minimumSearchScore")}
-                type="number"
-                min={0}
-                step={0.01}
-                defaultValue={minimumSearchScore.toString()}
-                onChange={(_ev, val) => onChange("minimumSearchScore", parseFloat(val || "0"))}
-                aria-labelledby={searchScoreId}
-                onRenderLabel={props => renderLabel(props, searchScoreId, searchScoreFieldId, t("helpTexts.searchScore"))}
-            />
-
-            {showSemanticRankerOption && (
-                <TextField
-                    id={rerankerScoreFieldId}
-                    className={styles.settingsSeparator}
-                    label={t("labels.minimumRerankerScore")}
-                    type="number"
-                    min={1}
-                    max={4}
-                    step={0.1}
-                    defaultValue={minimumRerankerScore.toString()}
-                    onChange={(_ev, val) => onChange("minimumRerankerScore", parseFloat(val || "0"))}
-                    aria-labelledby={rerankerScoreId}
-                    onRenderLabel={props => renderLabel(props, rerankerScoreId, rerankerScoreFieldId, t("helpTexts.rerankerScore"))}
-                />
-            )}
-
-            <TextField
-                id={retrieveCountFieldId}
-                className={styles.settingsSeparator}
-                label={t("labels.retrieveCount")}
-                type="number"
-                min={1}
-                max={50}
-                defaultValue={retrieveCount.toString()}
-                onChange={(_ev, val) => onChange("retrieveCount", parseInt(val || "3"))}
-                aria-labelledby={retrieveCountId}
-                onRenderLabel={props => renderLabel(props, retrieveCountId, retrieveCountFieldId, t("helpTexts.retrieveNumber"))}
-            />
-
-            <Dropdown
-                id={includeCategoryFieldId}
-                className={styles.settingsSeparator}
-                label={t("labels.includeCategory")}
-                selectedKey={includeCategory}
-                onChange={(_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IDropdownOption) => onChange("includeCategory", option?.key || "")}
-                aria-labelledby={includeCategoryId}
-                options={[
-                    { key: "", text: t("labels.includeCategoryOptions.all") }
-                    // { key: "example", text: "Example Category" } // Add more categories as needed
-                ]}
-                onRenderLabel={props => renderLabel(props, includeCategoryId, includeCategoryFieldId, t("helpTexts.includeCategory"))}
-            />
-
-            <TextField
-                id={excludeCategoryFieldId}
-                className={styles.settingsSeparator}
-                label={t("labels.excludeCategory")}
-                defaultValue={excludeCategory}
-                onChange={(_ev, val) => onChange("excludeCategory", val || "")}
-                aria-labelledby={excludeCategoryId}
-                onRenderLabel={props => renderLabel(props, excludeCategoryId, excludeCategoryFieldId, t("helpTexts.excludeCategory"))}
-            />
-
-            {showSemanticRankerOption && (
+            {retrievalMode !== RetrievalMode.None && (
                 <>
-                    <Checkbox
-                        id={semanticRankerFieldId}
+                    <TextField
+                        id={searchScoreFieldId}
                         className={styles.settingsSeparator}
-                        checked={useSemanticRanker}
-                        label={t("labels.useSemanticRanker")}
-                        onChange={(_ev, checked) => onChange("useSemanticRanker", !!checked)}
-                        aria-labelledby={semanticRankerId}
-                        onRenderLabel={props => renderLabel(props, semanticRankerId, semanticRankerFieldId, t("helpTexts.useSemanticReranker"))}
+                        label={t("labels.minimumSearchScore")}
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        defaultValue={minimumSearchScore.toString()}
+                        onChange={(_ev, val) => onChange("minimumSearchScore", parseFloat(val || "0"))}
+                        aria-labelledby={searchScoreId}
+                        onRenderLabel={props => renderLabel(props, searchScoreId, searchScoreFieldId, t("helpTexts.searchScore"))}
                     />
 
-                    <Checkbox
-                        id={semanticCaptionsFieldId}
+                    {showSemanticRankerOption && (
+                        <TextField
+                            id={rerankerScoreFieldId}
+                            className={styles.settingsSeparator}
+                            label={t("labels.minimumRerankerScore")}
+                            type="number"
+                            min={1}
+                            max={4}
+                            step={0.1}
+                            defaultValue={minimumRerankerScore.toString()}
+                            onChange={(_ev, val) => onChange("minimumRerankerScore", parseFloat(val || "0"))}
+                            aria-labelledby={rerankerScoreId}
+                            onRenderLabel={props => renderLabel(props, rerankerScoreId, rerankerScoreFieldId, t("helpTexts.rerankerScore"))}
+                        />
+                    )}
+
+                    <TextField
+                        id={retrieveCountFieldId}
                         className={styles.settingsSeparator}
-                        checked={useSemanticCaptions}
-                        label={t("labels.useSemanticCaptions")}
-                        onChange={(_ev, checked) => onChange("useSemanticCaptions", !!checked)}
-                        disabled={!useSemanticRanker}
-                        aria-labelledby={semanticCaptionsId}
-                        onRenderLabel={props => renderLabel(props, semanticCaptionsId, semanticCaptionsFieldId, t("helpTexts.useSemanticCaptions"))}
+                        label={t("labels.retrieveCount")}
+                        type="number"
+                        min={1}
+                        max={50}
+                        defaultValue={retrieveCount.toString()}
+                        onChange={(_ev, val) => onChange("retrieveCount", parseInt(val || "3"))}
+                        aria-labelledby={retrieveCountId}
+                        onRenderLabel={props => renderLabel(props, retrieveCountId, retrieveCountFieldId, t("helpTexts.retrieveNumber"))}
                     />
+
+                    <Dropdown
+                        id={includeCategoryFieldId}
+                        className={styles.settingsSeparator}
+                        label={t("labels.includeCategory")}
+                        selectedKey={includeCategory}
+                        onChange={(_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IDropdownOption) => onChange("includeCategory", option?.key || "")}
+                        aria-labelledby={includeCategoryId}
+                        options={[
+                            { key: "", text: t("labels.includeCategoryOptions.all") }
+                            // { key: "example", text: "Example Category" } // Add more categories as needed
+                        ]}
+                        onRenderLabel={props => renderLabel(props, includeCategoryId, includeCategoryFieldId, t("helpTexts.includeCategory"))}
+                    />
+
+                    <TextField
+                        id={excludeCategoryFieldId}
+                        className={styles.settingsSeparator}
+                        label={t("labels.excludeCategory")}
+                        defaultValue={excludeCategory}
+                        onChange={(_ev, val) => onChange("excludeCategory", val || "")}
+                        aria-labelledby={excludeCategoryId}
+                        onRenderLabel={props => renderLabel(props, excludeCategoryId, excludeCategoryFieldId, t("helpTexts.excludeCategory"))}
+                    />
+
+                    {showSemanticRankerOption && (
+                        <>
+                            <Checkbox
+                                id={semanticRankerFieldId}
+                                className={styles.settingsSeparator}
+                                checked={useSemanticRanker}
+                                label={t("labels.useSemanticRanker")}
+                                onChange={(_ev, checked) => onChange("useSemanticRanker", !!checked)}
+                                aria-labelledby={semanticRankerId}
+                                onRenderLabel={props => renderLabel(props, semanticRankerId, semanticRankerFieldId, t("helpTexts.useSemanticReranker"))}
+                            />
+
+                            <Checkbox
+                                id={semanticCaptionsFieldId}
+                                className={styles.settingsSeparator}
+                                checked={useSemanticCaptions}
+                                label={t("labels.useSemanticCaptions")}
+                                onChange={(_ev, checked) => onChange("useSemanticCaptions", !!checked)}
+                                disabled={!useSemanticRanker}
+                                aria-labelledby={semanticCaptionsId}
+                                onRenderLabel={props => renderLabel(props, semanticCaptionsId, semanticCaptionsFieldId, t("helpTexts.useSemanticCaptions"))}
+                            />
+                        </>
+                    )}
+
+                    {showQueryRewritingOption && (
+                        <>
+                            <Checkbox
+                                id={queryRewritingFieldId}
+                                className={styles.settingsSeparator}
+                                checked={useQueryRewriting}
+                                disabled={!useSemanticRanker}
+                                label={t("labels.useQueryRewriting")}
+                                onChange={(_ev, checked) => onChange("useQueryRewriting", !!checked)}
+                                aria-labelledby={queryRewritingFieldId}
+                                onRenderLabel={props => renderLabel(props, queryRewritingFieldId, queryRewritingFieldId, t("helpTexts.useQueryRewriting"))}
+                            />
+                        </>
+                    )}
+
+                    {showReasoningEffortOption && (
+                        <Dropdown
+                            id={reasoningEffortFieldId}
+                            selectedKey={reasoningEffort}
+                            label={t("labels.reasoningEffort")}
+                            onChange={(_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IDropdownOption) =>
+                                onChange("reasoningEffort", option?.key || "")
+                            }
+                            aria-labelledby={reasoningEffortFieldId}
+                            options={[
+                                { key: "low", text: t("labels.reasoningEffortOptions.low") },
+                                { key: "medium", text: t("labels.reasoningEffortOptions.medium") },
+                                { key: "high", text: t("labels.reasoningEffortOptions.high") }
+                            ]}
+                            onRenderLabel={props => renderLabel(props, queryRewritingFieldId, queryRewritingFieldId, t("helpTexts.reasoningEffort"))}
+                        />
+                    )}
                 </>
-            )}
-
-            {showQueryRewritingOption && (
-                <>
-                    <Checkbox
-                        id={queryRewritingFieldId}
-                        className={styles.settingsSeparator}
-                        checked={useQueryRewriting}
-                        disabled={!useSemanticRanker}
-                        label={t("labels.useQueryRewriting")}
-                        onChange={(_ev, checked) => onChange("useQueryRewriting", !!checked)}
-                        aria-labelledby={queryRewritingFieldId}
-                        onRenderLabel={props => renderLabel(props, queryRewritingFieldId, queryRewritingFieldId, t("helpTexts.useQueryRewriting"))}
-                    />
-                </>
-            )}
-
-            {showReasoningEffortOption && (
-                <Dropdown
-                    id={reasoningEffortFieldId}
-                    selectedKey={reasoningEffort}
-                    label={t("labels.reasoningEffort")}
-                    onChange={(_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IDropdownOption) =>
-                        onChange("reasoningEffort", option?.key || "")
-                    }
-                    aria-labelledby={reasoningEffortFieldId}
-                    options={[
-                        { key: "low", text: t("labels.reasoningEffortOptions.low") },
-                        { key: "medium", text: t("labels.reasoningEffortOptions.medium") },
-                        { key: "high", text: t("labels.reasoningEffortOptions.high") }
-                    ]}
-                    onRenderLabel={props => renderLabel(props, queryRewritingFieldId, queryRewritingFieldId, t("helpTexts.reasoningEffort"))}
-                />
             )}
 
             {useLogin && (

@@ -58,6 +58,7 @@ class ChatReadRetrieveReadApproach(ChatApproach):
         self.query_rewrite_prompt = self.prompt_manager.load_prompt("chat_query_rewrite.prompty")
         self.query_rewrite_tools = self.prompt_manager.load_tools("chat_query_rewrite_tools.json")
         self.answer_prompt = self.prompt_manager.load_prompt("chat_answer_question.prompty")
+        self.llm_only_answer_prompt = self.prompt_manager.load_prompt("chat_answer_question_llm_only.prompty")
         self.reasoning_effort = reasoning_effort
         self.include_token_usage = True
 
@@ -68,8 +69,51 @@ class ChatReadRetrieveReadApproach(ChatApproach):
         auth_claims: dict[str, Any],
         should_stream: bool = False,
     ) -> tuple[ExtraInfo, Union[Awaitable[ChatCompletion], Awaitable[AsyncStream[ChatCompletionChunk]]]]:
-        use_text_search = overrides.get("retrieval_mode") in ["text", "hybrid", None]
-        use_vector_search = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
+        retrieval_mode = overrides.get("retrieval_mode")
+        if retrieval_mode == "none":
+            # LLM-only: 검색 및 RAG 단계를 건너뛰고 바로 답변 생성
+            original_user_query = messages[-1]["content"]
+            if not isinstance(original_user_query, str):
+                raise ValueError("The most recent message content must be a string.")
+
+            answer_messages = self.prompt_manager.render_prompt(
+                self.llm_only_answer_prompt,
+                self.get_system_prompt_variables(overrides.get("prompt_template"))
+                | {
+                    "include_follow_up_questions": bool(overrides.get("suggest_followup_questions")),
+                    "past_messages": messages[:-1],
+                    "user_query": original_user_query,
+                },
+            )
+            extra_info = ExtraInfo(
+                DataPoints(text=""),
+                thoughts=[
+                    self.format_thought_step_for_chatcompletion(
+                        title="Prompt to generate answer (LLM only)",
+                        messages=answer_messages,
+                        overrides=overrides,
+                        model=self.chatgpt_model,
+                        deployment=self.chatgpt_deployment,
+                        usage=None,
+                    ),
+                ],
+            )
+            chat_coroutine = cast(
+                Union[Awaitable[ChatCompletion], Awaitable[AsyncStream[ChatCompletionChunk]]],
+                self.create_chat_completion(
+                    self.chatgpt_deployment,
+                    self.chatgpt_model,
+                    answer_messages,
+                    overrides,
+                    self.get_response_token_limit(self.chatgpt_model, 1024),
+                    should_stream,
+                ),
+            )
+            return (extra_info, chat_coroutine)
+
+
+        use_text_search = retrieval_mode in ["text", "hybrid", None]
+        use_vector_search = retrieval_mode in ["vectors", "hybrid", None]
         use_semantic_ranker = True if overrides.get("semantic_ranker") else False
         use_semantic_captions = True if overrides.get("semantic_captions") else False
         use_query_rewriting = True if overrides.get("query_rewriting") else False

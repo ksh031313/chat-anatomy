@@ -59,7 +59,18 @@ export const VectorSettings = ({ updateRetrievalMode, updateVectorFields, showIm
                         selected: retrievalMode == RetrievalMode.Vectors,
                         data: RetrievalMode.Vectors
                     },
-                    { key: "text", text: t("labels.retrievalMode.options.texts"), selected: retrievalMode == RetrievalMode.Text, data: RetrievalMode.Text }
+                    {
+                        key: "text",
+                        text: t("labels.retrievalMode.options.texts"),
+                        selected: retrievalMode == RetrievalMode.Text,
+                        data: RetrievalMode.Text
+                    },
+                    {
+                        key: "none",
+                        text: "None",
+                        selected: retrievalMode == RetrievalMode.None,
+                        data: RetrievalMode.None
+                    }
                 ]}
                 required
                 onChange={onRetrievalModeChange}
@@ -69,7 +80,7 @@ export const VectorSettings = ({ updateRetrievalMode, updateVectorFields, showIm
                 )}
             />
 
-            {showImageOptions && [RetrievalMode.Vectors, RetrievalMode.Hybrid].includes(retrievalMode) && (
+            {retrievalMode !== RetrievalMode.None && showImageOptions && [RetrievalMode.Vectors, RetrievalMode.Hybrid].includes(retrievalMode) && (
                 <Dropdown
                     id={vectorFieldsFieldId}
                     label={t("labels.vector.label")}
