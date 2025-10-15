@@ -1,23 +1,63 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { useLogin } from "../../authConfig";
+import { useLogin, getToken } from "../../authConfig";
 import { logUserActivity } from "../../utils/activityLogger";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Outro.module.css";
+import { useLocation } from "react-router-dom";
+import { getChatHistorySummaryApi } from "../../api/api";
 
 const Outro = () => {
     const client = useLogin ? useMsal().instance : undefined;
+    const location = useLocation();
+    const quizzes = location.state?.quizzes || [];
+    const [currentIdx, setCurrentIdx] = useState(0);
+    const [summary, setSummary] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
 
-    // 화면 접속 시 로그 저장
     useEffect(() => {
         logUserActivity(client, "/outro", "page_visit", "User visited the Outro page");
+
+        // 학습 요약 조회
+        const fetchSummary = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                let idToken: string | undefined;
+                if (client) {
+                    idToken = await getToken(client);
+                }
+                if (!idToken) {
+                    setError("유효한 토큰이 없습니다.");
+                    setLoading(false);
+                    return;
+                }
+                const result = await getChatHistorySummaryApi(idToken);
+                if (result.summary) {
+                    setSummary(result.summary);
+                } else {
+                    setError(result.error || "요약 정보를 가져올 수 없습니다.");
+                }
+            } catch (err: any) {
+                setError(err.message || "요약 정보를 가져올 수 없습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSummary();
     }, []);
+
+    const handlePrev = () => {
+        setCurrentIdx((prev) => Math.max(prev - 1, 0));
+    };
+    const handleNext = () => {
+        setCurrentIdx((prev) => Math.min(prev + 1, quizzes.length - 1));
+    };
 
     return (
         <div className={styles.container}>
-            <div className={styles.title}>
-                학습 정리
-            </div>
+            <div className={styles.title}>학습 정리</div>
             <div className={styles.content}>
                 <img
                     src={appCharacter}
@@ -25,13 +65,50 @@ const Outro = () => {
                     className={styles.image}
                 />
                 <div className={styles.text}>
-                    지금까지 토미와 함께 해부학 공부를 잘 마쳤어.<br />
-                    친구에게 설명하듯 배운 내용을 내 말로 정리하고, 궁금한 점은 직접 토미에게 질문했지.
-                    질문을 바탕으로 만든 퀴즈도 풀면서 한 번 더 확인했어.
-                    <br />
-                    <br />
-                    오늘 배운 내용 중 더 공부가 필요한 부분은 다시 복습해서 내 것으로 만들어보자!{" "}
-                    <span className={styles.emoji}>😊</span>
+                    {/* 학습 요약 영역 */}
+                    {loading ? (
+                        <span>학습 내용을 요약 중입니다...</span>
+                    ) : error ? (
+                        <span className={styles.error}>{error}</span>
+                    ) : (
+                        <div className={styles.summaryBox}>{summary}</div>
+                    )}
+                    {/* 퀴즈 결과 영역을 요약 아래에 위치 */}
+                    <div className={styles.quizResultSection}>
+                        {quizzes.length === 0 ? (
+                            <span>퀴즈 결과 데이터가 없습니다.</span>
+                        ) : (
+                            <div>
+                                <div className={styles.quizSummaryTitle}>
+                                    <b>문제 {currentIdx + 1} / {quizzes.length}</b>
+                                </div>
+                                <div className={styles.quizQuestion}><b>Q.</b> {quizzes[currentIdx].question}</div>
+                                <div className={styles.quizChoices}>
+                                    {quizzes[currentIdx].choices.map((choice: string, idx: number) => (
+                                        <div
+                                            key={idx}
+                                            className={
+                                                quizzes[currentIdx].answer === idx + 1
+                                                    ? styles.correctChoice
+                                                    : quizzes[currentIdx].userChoice === idx
+                                                    ? styles.selectedChoice
+                                                    : styles.choice
+                                            }
+                                        >
+                                            {choice}
+                                            {quizzes[currentIdx].userChoice === idx && " (내 선택)"}
+                                            {quizzes[currentIdx].answer === idx + 1 && " (정답)"}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className={styles.quizExplanation}><b>해설:</b> {quizzes[currentIdx].explanation}</div>
+                                <div className={styles.quizNav}>
+                                    <button onClick={handlePrev} disabled={currentIdx === 0} className={styles.button}>이전 문제</button>
+                                    <button onClick={handleNext} disabled={currentIdx === quizzes.length - 1} className={styles.button}>다음 문제</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

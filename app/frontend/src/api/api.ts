@@ -257,3 +257,31 @@ export async function saveUserActivityApi(item: any, idToken: string | undefined
     const dataResponse: any = await response.json();
     return dataResponse;
 }
+
+export async function getChatHistorySummaryApi(idToken: string): Promise<any> {
+    const headers = await getHeaders(idToken);
+    const response = await fetch(`/chat_history/summary`, {
+        method: "GET",
+        headers: { ...headers, "Content-Type": "application/json" }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Getting chat history summary failed: ${response.statusText}`);
+    }
+
+    const dataResponse = await response.json();
+    return dataResponse;
+}
+
+export async function translateApi(text: string): Promise<string> {
+    const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+    });
+    if (!response.ok) {
+        throw new Error(`Translation failed: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.translated;
+}

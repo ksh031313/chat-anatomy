@@ -1,3 +1,100 @@
+.summaryBox {
+    background: #f5f7fa;
+    border: 2px solid #1976d2;
+    border-radius: 10px;
+    padding: 24px;
+    font-size: 15px;
+    color: #222;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.quizResultSection {
+    margin-top: 16px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e0e0e0;
+}
+
+.quizSummaryTitle {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.quizQuestion {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.quizChoices {
+    margin-bottom: 10px;
+}
+
+.correctChoice {
+    background: #e6ffe6;
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 6px 0;
+    font-weight: bold;
+    color: #388e3c;
+}
+
+.selectedChoice {
+    background: #e3f2fd;
+    border: 2px solid #1976d2;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 6px 0;
+    color: #1976d2;
+}
+
+.choice {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 6px 0;
+    color: #444;
+}
+
+.quizExplanation {
+    margin-top: 8px;
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.quizNav {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.button {
+    padding: 8px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    background: #1976d2;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.button:disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+
+.error {
+    color: red;
+    margin-top: 16px;
+    font-size: 18px;
+}
 .container {
     padding: 32px;
     min-height: 100vh;

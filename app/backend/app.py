@@ -1,3 +1,4 @@
+
 import dataclasses
 import io
 import json
@@ -57,7 +58,8 @@ from approaches.chatreadretrievereadvision import ChatReadRetrieveReadVisionAppr
 from approaches.promptmanager import PromptyManager
 from approaches.retrievethenread import RetrieveThenReadApproach
 from approaches.retrievethenreadvision import RetrieveThenReadVisionApproach
-from approaches.quiz import get_latest_quiz, quiz_bp
+from approaches.quiz import get_latest_quiz, quiz_bp, summarize_latest_chat_history
+from approaches.translator import translate_en_to_ko
 from chat_history.cosmosdb import chat_history_cosmosdb_bp
 from activity_history.user_activity import activity_history_bp
 from config import (
@@ -447,6 +449,33 @@ async def quiz(auth_claims: dict[str, Any]):
     except Exception as error:
         return error_response(error, "/quiz")
 
+@bp.get("/chat_history/summary")
+@authenticated
+async def chat_history_summary(auth_claims: dict[str, Any]):
+    """
+    프론트엔드에서 호출: 최근 채팅 히스토리 요약 반환
+    """
+    try:
+        result = await summarize_latest_chat_history(auth_claims)
+        return jsonify(result)
+    except Exception as error:
+        logging.error(f"chat_history_summary: error={error}", exc_info=True)
+        return jsonify({"error": str(error)}), 500
+
+# 영어->한국어 번역 API
+@bp.route("/translate", methods=["POST"])
+async def translate():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+    req_json = await request.get_json()
+    text = req_json.get("text")
+    if not text:
+        return jsonify({"error": "Missing 'text' field"}), 400
+    try:
+        translated = translate_en_to_ko(text)
+        return jsonify({"translated": translated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @bp.before_app_serving
 async def setup_clients():

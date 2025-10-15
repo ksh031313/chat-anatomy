@@ -162,3 +162,45 @@ async def get_latest_quiz(auth_claims: dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         logging.error(f"get_latest_quiz: error={e}")
         return {"error": str(e)}
+
+async def summarize_latest_chat_history(auth_claims: dict[str, Any]) -> Dict[str, Any]:
+    """
+    최근 채팅 히스토리를 조회하여 LLM으로 요약 정리한 결과를 반환합니다.
+    """
+    logging.info(f"summarize_latest_chat_history: auth_claims={auth_claims}")
+    if not current_app.config.get(CONFIG_CHAT_HISTORY_COSMOS_ENABLED):
+        logging.warning("summarize_latest_chat_history: Chat history not enabled")
+        return {"error": "Chat history not enabled"}
+
+    container = current_app.config.get(CONFIG_COSMOS_HISTORY_CONTAINER)
+    if not container:
+        logging.warning("summarize_latest_chat_history: Chat history container not configured")
+        return {"error": "Chat history container not configured"}
+
+    try:
+        message_pairs = await fetch_latest_chat_history(auth_claims, container)
+        # Q/A 쌍을 텍스트로 변환
+        history_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in message_pairs])
+        # 요약 프롬프트 생성
+        prompt = (
+            "다음은 최근 사용자와 챗봇의 대화 내용입니다.\n"
+            "이 대화 내용을 구조화 하여 요약해 주세요.\n"
+            "대화 내용:\n"
+            f"{history_text}\n"
+            "요약:"
+        )
+        openai_client = current_app.config[CONFIG_OPENAI_CLIENT]
+        chatgpt_model = os.environ["AZURE_OPENAI_CHATGPT_MODEL"]
+        chatgpt_deployment = os.environ.get("AZURE_OPENAI_CHATGPT_DEPLOYMENT")
+        completion = await openai_client.chat.completions.create(
+            model=chatgpt_deployment,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.5,
+        )
+        summary = completion.choices[0].message.content.strip()
+        logging.info(f"summarize_latest_chat_history: summary={summary}")
+        return {"summary": summary}
+    except Exception as e:
+        logging.error(f"summarize_latest_chat_history: error={e}", exc_info=True)
+        return {"error": str(e)}

@@ -131,12 +131,12 @@ const Quiz: React.FC = () => {
     };
 
     const saveQuizHistory = async (quizzesToSave: QuizItem[] = savedQuizzes) => {
-        console.log("저장된 퀴즈 데이터:", quizzesToSave);
+        // console.log("저장된 퀴즈 데이터:", quizzesToSave);
 
         try {
             const token = msalInstance ? await getToken(msalInstance) : null;
             if (!token) {
-                console.error("유효한 토큰이 없습니다.");
+                // console.error("유효한 토큰이 없습니다.");
                 return;
             }
 
@@ -152,9 +152,9 @@ const Quiz: React.FC = () => {
                 token
             );
 
-            console.log("퀴즈 히스토리가 성공적으로 저장되었습니다.");
+            // console.log("퀴즈 히스토리가 성공적으로 저장되었습니다.");
         } catch (error) {
-            console.error("퀴즈 히스토리 저장 실패:", error);
+            // console.error("퀴즈 히스토리 저장 실패:", error);
         }
     };
 
@@ -224,7 +224,11 @@ const Quiz: React.FC = () => {
                             ) : (
                                 <div className={styles.quizEnd}>
                                     퀴즈가 모두 끝났습니다!{" "}
-                                    <Link to="/outro" className={styles.link}>
+                                    <Link
+                                        to="/outro"
+                                        className={styles.link}
+                                        state={{ quizzes: savedQuizzes }}
+                                    >
                                         학습 정리
                                     </Link> 로 이동하세요.
                                 </div>
