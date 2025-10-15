@@ -88,7 +88,7 @@ export const Answer = ({
                             title={t("tooltips.showSupportingContent")}
                             ariaLabel={t("tooltips.showSupportingContent")}
                             onClick={() => onSupportingContentClicked()}
-                            disabled={!answer.context.data_points}
+                            disabled={!(answer.context.data_points.text && answer.context.data_points.text.length > 0)}
                         />
                         {showSpeechOutputAzure && (
                             <SpeechOutputAzure answer={sanitizedAnswerHtml} index={index} speechConfig={speechConfig} isStreaming={isStreaming} />

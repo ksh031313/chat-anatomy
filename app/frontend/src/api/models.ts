@@ -1,7 +1,8 @@
 export const enum RetrievalMode {
     Hybrid = "hybrid",
     Vectors = "vectors",
-    Text = "text"
+    Text = "text",
+    None = "none" // LLM-only 모드
 }
 
 export const enum GPT4VInput {
@@ -53,7 +54,10 @@ export type Thoughts = {
 };
 
 export type ResponseContext = {
-    data_points: string[];
+    data_points: {
+        text: string[];
+        images?: any[];
+    };
     followup_questions: string[] | null;
     thoughts: Thoughts[];
 };

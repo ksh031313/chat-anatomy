@@ -31,3 +31,18 @@
 .supportingContentItemImage {
     object-fit: contain;
 }
+
+.supportingContentTranslateBtn {
+    margin-top: 0.5em;
+    padding: 0.4em 1em;
+    background: #0078d4;
+    color: #fff;
+    border: none;
+    border-radius: 0.3em;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background 0.2s;
+}
+.supportingContentTranslateBtn:hover {
+    background: #005fa3;
+}
