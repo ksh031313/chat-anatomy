@@ -32,7 +32,7 @@ import { HistoryButton } from "../../components/HistoryButton";
 import { SettingsButton } from "../../components/SettingsButton";
 import { ClearChatButton } from "../../components/ClearChatButton";
 import { UploadFile } from "../../components/UploadFile";
-import { useLogin, getToken, requireAccessControl } from "../../authConfig";
+import { useLogin, getToken, requireAccessControl, getUsername } from "../../authConfig";
 import { useMsal } from "@azure/msal-react";
 import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
 import { LoginContext } from "../../loginContext";
@@ -179,6 +179,31 @@ const Chat = () => {
 
     const client = useLogin ? useMsal().instance : undefined;
     const { loggedIn } = useContext(LoginContext);
+
+    // Set retrieval mode based on logged-in username.
+    // Rule: if username's first character is 'k' (case-insensitive) => RetrievalMode.None
+    useEffect(() => {
+        let cancelled = false;
+        const applyRetrievalModeFromUsername = async () => {
+            if (!useLogin || !client) return;
+            try {
+                const username = await getUsername(client);
+                if (cancelled || !username) return;
+                const firstChar = username[0]?.toLowerCase();
+                if (firstChar === "k") {
+                    setRetrievalMode(RetrievalMode.None);
+                }
+            } catch (e) {
+                // If username lookup fails, keep the default retrieval mode
+                console.debug("Could not determine username for retrievalMode mapping", e);
+            }
+        };
+
+        applyRetrievalModeFromUsername();
+        return () => {
+            cancelled = true;
+        };
+    }, [client, useLogin]);
 
     const historyProvider: HistoryProviderOptions = (() => {
         if (useLogin && showChatHistoryCosmos) return HistoryProviderOptions.CosmosDB;

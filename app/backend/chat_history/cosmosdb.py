@@ -20,6 +20,24 @@ from error import error_response
 chat_history_cosmosdb_bp = Blueprint("chat_history_cosmos", __name__, static_folder="static")
 
 
+def get_username_from_claims(auth_claims: dict[str, Any]) -> Union[str, None]:
+    """Attempt to extract a reasonable username from auth claims.
+
+    Tries common claim keys in order of preference and returns the first non-empty string.
+    """
+    if not auth_claims:
+        return None
+
+    # Common claim names that may contain a human-readable username/email
+    for key in ("name", "preferred_username", "upn", "email", "username"):
+        val = auth_claims.get(key)
+        if isinstance(val, str) and val.strip():
+            return val
+
+    # As a last resort, try to construct from given parts (not ideal)
+    return None
+
+
 async def generate_chat_title(first_question: str) -> str:
     """
     LLM(OpenAI)을 이용해 30자 이내의 채팅방 제목을 생성합니다.
@@ -59,6 +77,8 @@ async def post_chat_history(auth_claims: dict[str, Any]):
         return jsonify({"error": "Chat history not enabled"}), 400
 
     entra_oid = auth_claims.get("oid")
+    username = get_username_from_claims(auth_claims)
+
     if not entra_oid:
         return jsonify({"error": "User OID not found"}), 401
 
@@ -79,6 +99,7 @@ async def post_chat_history(auth_claims: dict[str, Any]):
             "web_session_id": web_session_id,
             "session_id": session_id,
             "entra_oid": entra_oid,
+            "username": username,
             "type": "session",
             "title": title,
             "timestamp": timestamp,
@@ -94,6 +115,7 @@ async def post_chat_history(auth_claims: dict[str, Any]):
                     "web_session_id": web_session_id,
                     "session_id": session_id,
                     "entra_oid": entra_oid,
+                    "username": username,
                     "type": "message_pair",
                     "question": message_pair[0],
                     "response": message_pair[1],

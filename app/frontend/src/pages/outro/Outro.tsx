@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import DOMPurify from "dompurify";
 import { useMsal } from "@azure/msal-react";
 import { useLogin, getToken } from "../../authConfig";
 import { logUserActivity } from "../../utils/activityLogger";
@@ -8,6 +9,7 @@ import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Outro.module.css";
 import { useLocation } from "react-router-dom";
 import { getChatHistorySummaryApi } from "../../api/api";
+import rehypeRaw from "rehype-raw";
 
 const Outro = () => {
     const client = useLogin ? useMsal().instance : undefined;
@@ -74,7 +76,7 @@ const Outro = () => {
                         <span className={styles.error}>{error}</span>
                     ) : (
                         <div className={styles.summaryBox}>
-                            <ReactMarkdown children={summary} remarkPlugins={[remarkGfm]} />
+                            <ReactMarkdown rehypePlugins={[rehypeRaw]} remarkPlugins={[remarkGfm]}>{useMemo(() => DOMPurify.sanitize(summary), [summary])}</ReactMarkdown>
                         </div>
                     )}
                     {/* 퀴즈 결과 영역을 요약 아래에 위치 */}

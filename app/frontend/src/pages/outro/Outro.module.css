@@ -139,7 +139,8 @@
     font-size: 22px;
     background: #fafbfc;
     color: #444;
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     line-height: 1.6;
 }
 

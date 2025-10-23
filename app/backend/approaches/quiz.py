@@ -183,8 +183,10 @@ async def summarize_latest_chat_history(auth_claims: dict[str, Any]) -> Dict[str
         history_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in message_pairs])
         # 요약 프롬프트 생성
         prompt = (
-            "다음은 최근 사용자와 챗봇의 대화 내용입니다.\n"
-            "이 대화 내용을 Markdown 형식으로 구조화 하여 1000자 이내로 요약해 주세요.\n"
+            "다음은 최근 사용자와 친절한 학습 도우미 '토미'의 대화 내용입니다.\n"
+            "이 대화 내용 중 질문과 그에 대한 답변(Q/A) 쌍을 중심으로 핵심을 추려, 토미의 친근하고 이해하기 쉬운 말투로,\n"
+            "Markdown 형식으로 구조화하여 1000자 이내로 요약해 주세요.\n"
+            "요약 마지막에 한 줄로 '이 요약은 질문과 답변 내용을 요약한 것입니다.'라는 안내 문구를 포함해 주세요.\n"
             "대화 내용:\n"
             f"{history_text}\n"
             "요약:"

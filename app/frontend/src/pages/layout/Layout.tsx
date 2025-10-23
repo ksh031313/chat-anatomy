@@ -49,10 +49,10 @@ const Layout = () => {
                                     className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
                                     onClick={() => setMenuOpen(false)}
                                 >
-                                    {t("intro") /* intro 메뉴명, i18n에 추가 필요 */}
+                                    {t("intro")}
                                 </NavLink>
                             </li>
-                                                    <li>
+                            {/* <li>
                                 <NavLink
                                     to="/qa"
                                     className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
@@ -60,7 +60,7 @@ const Layout = () => {
                                 >
                                     {t("qa")}
                                 </NavLink>
-                            </li>
+                            </li> */}
                             <li>
                                 <NavLink
                                     to="/chat"
