@@ -1,9 +1,17 @@
+import os
 import requests
 
 def translate_en_to_ko(text: str) -> str:
 	endpoint = "https://api.cognitive.microsofttranslator.com/translate"
-	subscription_key = "Cw0rCtYecmy3Zjdne3GzgTzghLDeLuXSD5rrIjLDG4sTwMp3aMyOJQQJ99BJACNns7RXJ3w3AAAbACOGXLYJ"
+	subscription_key = os.getenv("AZURE_TRANSLATOR_KEY")
+	if not subscription_key:
+		raise RuntimeError(
+			"Azure Translator subscription key not set."
+			" Please set the AZURE_TRANSLATOR_KEY environment variable."
+		)
+
 	location = "koreacentral"
+
 	params = {
 		"api-version": "3.0",
 		"from": "en",

@@ -70,8 +70,8 @@
 
     "headerTexts":{
         "thoughtProcess": "Thought Process",
-        "supportingContent": "RAG 검색 결과",
-        "citation": "Citation"
+        "supportingContent": "참고한 내용",
+        "citation": "교과서 페이지"
     },
 
     "labels": {

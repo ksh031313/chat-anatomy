@@ -50,7 +50,36 @@ const Chat = () => {
     const [minimumRerankerScore, setMinimumRerankerScore] = useState<number>(0);
     const [minimumSearchScore, setMinimumSearchScore] = useState<number>(0);
     const [retrieveCount, setRetrieveCount] = useState<number>(3);
-    const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(RetrievalMode.Hybrid);
+    const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(() => {
+        try {
+            const stored = sessionStorage.getItem("retrievalMode");
+            if (!stored) return RetrievalMode.Hybrid;
+            // Prefer stored enum name (we persist names like 'None','Hybrid','Text').
+            const lower = stored.toLowerCase();
+            if (lower === "none") return RetrievalMode.None;
+            if (lower === "hybrid") return RetrievalMode.Hybrid;
+            if (lower === "text") return RetrievalMode.Text;
+            // Fallback: if older data stored a numeric value, parse and cast.
+            const num = Number(stored);
+            if (!isNaN(num)) {
+                return num as unknown as RetrievalMode;
+            }
+            // Unknown value -> default
+            return RetrievalMode.Hybrid;
+        } catch (e) {
+            // console.debug("Failed to read retrievalMode from sessionStorage", e);
+        }
+        return RetrievalMode.Hybrid;
+    });
+    const [isRetrievalNone, setIsRetrievalNone] = useState<boolean>(() => {
+        try {
+            const stored = sessionStorage.getItem("retrievalMode");
+            if (!stored) return false;
+            return stored.toLowerCase() === "none";
+        } catch (e) {
+            return false;
+        }
+    });
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useQueryRewriting, setUseQueryRewriting] = useState<boolean>(false);
     const [reasoningEffort, setReasoningEffort] = useState<string>("");
@@ -94,6 +123,7 @@ const Chat = () => {
     const [showSpeechOutputAzure, setShowSpeechOutputAzure] = useState<boolean>(false);
     const [showChatHistoryBrowser, setShowChatHistoryBrowser] = useState<boolean>(false);
     const [showChatHistoryCosmos, setShowChatHistoryCosmos] = useState<boolean>(false);
+    const [hideSettingsButton, setHideSettingsButton] = useState<boolean>(false);
     const audio = useRef(new Audio()).current;
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -181,29 +211,69 @@ const Chat = () => {
     const { loggedIn } = useContext(LoginContext);
 
     // Set retrieval mode based on logged-in username.
-    // Rule: if username's first character is 'k' (case-insensitive) => RetrievalMode.None
     useEffect(() => {
         let cancelled = false;
-        const applyRetrievalModeFromUsername = async () => {
+        const applyFromUsername = async () => {
             if (!useLogin || !client) return;
             try {
                 const username = await getUsername(client);
                 if (cancelled || !username) return;
-                const firstChar = username[0]?.toLowerCase();
-                if (firstChar === "k") {
+                const prefix = (username || "").split("@")[0].toLowerCase();
+
+                const retrievalNone = /^t\d{2}$/.test(prefix);
+                if (retrievalNone) {
                     setRetrievalMode(RetrievalMode.None);
                 }
+
+                const settingsHide = /^[ts]\d{2}$/.test(prefix);
+                setHideSettingsButton(settingsHide);
             } catch (e) {
-                // If username lookup fails, keep the default retrieval mode
-                console.debug("Could not determine username for retrievalMode mapping", e);
+                // console.debug("Could not determine username", e);
             }
         };
 
-        applyRetrievalModeFromUsername();
+        applyFromUsername();
         return () => {
             cancelled = true;
         };
     }, [client, useLogin]);
+
+    // Persist retrievalMode to sessionStorage whenever it changes
+    useEffect(() => {
+        try {
+            // Store enum name (e.g., 'None', 'Hybrid', 'Text') so other pages can read the exact mode.
+            let name = String(retrievalMode);
+            // Common explicit mappings in case the enum is numeric at runtime
+            if (retrievalMode === RetrievalMode.None) name = "None";
+            else if (retrievalMode === RetrievalMode.Hybrid) name = "Hybrid";
+            else if (retrievalMode === RetrievalMode.Text) name = "Text";
+
+            sessionStorage.setItem("retrievalMode", name);
+        } catch (e) {
+            // console.debug("Failed to persist retrievalMode to sessionStorage", e);
+        }
+    }, [retrievalMode]);
+
+    // Keep local isRetrievalNone in sync with retrievalMode and sessionStorage
+    useEffect(() => {
+        try {
+            setIsRetrievalNone(retrievalMode === RetrievalMode.None);
+        } catch (e) {
+            // console.debug("Could not set isRetrievalNone from retrievalMode", e);
+            setIsRetrievalNone(false);
+        }
+    }, [retrievalMode]);
+
+    useEffect(() => {
+        // Ensure we also respond to any sessionStorage value on mount
+        try {
+            const stored = sessionStorage.getItem("retrievalMode");
+            setIsRetrievalNone(Boolean(stored && stored.toLowerCase() === "none"));
+        } catch (e) {
+            // console.debug("Could not read retrievalMode from sessionStorage", e);
+            setIsRetrievalNone(false);
+        }
+    }, []);
 
     const historyProvider: HistoryProviderOptions = (() => {
         if (useLogin && showChatHistoryCosmos) return HistoryProviderOptions.CosmosDB;
@@ -213,7 +283,7 @@ const Chat = () => {
     const historyManager = useHistoryManager(historyProvider);
 
     const makeApiRequest = async (question: string) => {
-        const activity_content = `retrievalMode: ${retrievalMode}, length: ${question.length}, content: ${question}`;
+        const activity_content = `retrievalMode: ${retrievalMode} | length: ${question.length} | content: ${question}`;
         logUserActivity(client, "/chat", "chat_input", activity_content);
 
         lastQuestionRef.current = question;
@@ -424,6 +494,22 @@ const Chat = () => {
 
     const { t, i18n } = useTranslation();
 
+    // Compute history panel width dynamically (match HistoryPanel logic)
+    const [historyPanelWidth, setHistoryPanelWidth] = useState<string>("300px");
+
+    useEffect(() => {
+        const getWidth = () => {
+            if (typeof window === "undefined") return "300px";
+            const w = window.innerWidth;
+            return w <= 1200 ? "250px" : "300px";
+        };
+
+        const update = () => setHistoryPanelWidth(getWidth());
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
+
     return (
         <div className={styles.container}>
             <Helmet>
@@ -438,26 +524,34 @@ const Chat = () => {
                 <div className={styles.commandsContainer}>
                     <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                     {showUserUpload && <UploadFile className={styles.commandButton} disabled={!loggedIn} />}
-                    <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    {!hideSettingsButton && (
+                        <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                    )}
                 </div>
             </div>
-            <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? "300px" : "0" }}>
+            <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? historyPanelWidth : "0" }}>
                 <div className={styles.chatContainer}>
                     {!lastQuestionRef.current ? (
                         <div className={styles.chatEmptyState}>
-                            <div className={styles.chatTitle}>
+                            {/* <div className={styles.chatTitle}>
                                 AI 튜터에 질문하세요.
-                            </div>
+                            </div> */}
                             <div className={styles.appCharacterContainer}>
                                 <img
                                     src={appCharacter}
                                     alt="App Character"
                                     className={styles.appCharacterImage}
                                 />
-                                <div className={styles.appCharacterText}>
-                                    친구한테 설명하다가 기억이 잘 안 나거나 헷갈리는 부분 있어? <br />
-                                    지금 바로 토미한테 질문해봐!<br /><br />
-                                    궁금한 거나 정확히 이해 안 되는 부분을 프롬프트에 적으면 토미가 친절하고 자세하게 알려줄게. 부담 갖지 말고 편하게 질문해!
+                                <div className={styles.chatTitle}>
+                                    {isRetrievalNone ? (
+                                        <>
+                                            AI 튜터와 질문하며 공부하세요.
+                                        </>
+                                    ) : (
+                                        <>
+                                            믿음직한 AI 튜터와 질문하고 검증하며 공부하세요.
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}

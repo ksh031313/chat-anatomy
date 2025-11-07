@@ -109,7 +109,7 @@
 }
 
 .chatTitle {
-    font-size: 48px;
+    font-size: 45px;
     font-weight: bold;
     padding: 16px 0;
     text-align: center;
@@ -180,11 +180,9 @@
     }
 
     .appCharacterText {
-        border: 2px solid #888;
-        border-radius: 8px;
         padding: 20px;
-        font-size: 18px;
-        background: #fafbfc;
+        font-size: 22px;
+        font-weight: bold;
         color: #444;
         line-height: 1.5;
         text-align: center;
@@ -204,7 +202,7 @@
 @media (min-width: 769px) {
     .appCharacterContainer {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 24px;
         margin: 24px 0;
         padding-left: 70px;
@@ -224,11 +222,9 @@
     }
 
     .appCharacterText {
-        border: 2px solid #888;
-        border-radius: 8px;
         padding: 20px;
-        font-size: 22px;
-        background: #fafbfc;
+        font-size: 35px;
+        font-weight: bold;
         color: #444;
         flex: 1;
         line-height: 1.6;

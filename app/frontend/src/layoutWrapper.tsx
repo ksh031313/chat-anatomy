@@ -1,12 +1,15 @@
 import { AccountInfo, EventType, PublicClientApplication } from "@azure/msal-browser";
 import { checkLoggedIn, msalConfig, useLogin } from "./authConfig";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MsalProvider } from "@azure/msal-react";
 import { LoginContext } from "./loginContext";
 import Layout from "./pages/layout/Layout";
+import { logUserActivity } from "./utils/activityLogger";
 
 const LayoutWrapper = () => {
     const [loggedIn, setLoggedIn] = useState(false);
+    const navigate = useNavigate();
     if (useLogin) {
         var msalInstance = new PublicClientApplication(msalConfig);
 
@@ -31,6 +34,30 @@ const LayoutWrapper = () => {
 
             fetchLoggedIn();
         }, []);
+
+        // When user first becomes logged in during this session, record a login activity.
+        useEffect(() => {
+            if (!loggedIn) return;
+            try {
+                const alreadyRecorded = sessionStorage.getItem("login_activity_recorded");
+                if (alreadyRecorded) return;
+                // Fire-and-forget; activityLogger handles token retrieval and errors.
+                logUserActivity(msalInstance, "/auth", "login", "User logged in").then(() => {
+                    sessionStorage.setItem("login_activity_recorded", "1");
+                }).catch(() => {
+                    // swallow errors; we don't want to break app flow
+                });
+            } catch (e) {
+                // ignore
+            }
+        }, [loggedIn]);
+
+        // When the user becomes logged in, navigate to /chat
+        useEffect(() => {
+            if (loggedIn) {
+                navigate("/chat", { replace: true });
+            }
+        }, [loggedIn, navigate]);
 
         return (
             <MsalProvider instance={msalInstance}>

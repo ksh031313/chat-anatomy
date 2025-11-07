@@ -5,7 +5,7 @@
 }
 
 .title {
-    font-size: 48px;
+    font-size: 45px;
     font-weight: bold;
     padding: 16px 0;
     text-align: center;
@@ -15,20 +15,21 @@
 
 .content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 24px;
     margin-bottom: 24px;
-    padding-left: 70px;
-    padding-right: 70px;
+    padding-left: 0;
+    padding-right: 0;
     max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
+    justify-content: center;
 }
 
 .image {
     width: 140px;
     object-fit: contain;
-    margin-left: 8px;
+    margin-left: 0;
     background: #f8f8f8;
     border-radius: 12px;
     border: 1px solid #eee;
@@ -38,11 +39,18 @@
     border: 2px solid #888;
     border-radius: 8px;
     padding: 20px;
-    font-size: 22px;
+    font-size: 25px;
     background: #fafbfc;
     color: #444;
     flex: 1;
     line-height: 1.6;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.textBody {
+    flex: 1;
 }
 
 .link {

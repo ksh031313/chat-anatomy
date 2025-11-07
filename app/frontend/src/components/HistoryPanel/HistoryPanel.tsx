@@ -68,12 +68,30 @@ export const HistoryPanel = ({
 
     const { t } = useTranslation();
 
+    // responsive custom width: 250px when window width is 1200px or less, otherwise 300px
+    const [customWidth, setCustomWidth] = useState<string>("300px");
+
+    useEffect(() => {
+        const getCustomWidth = () => {
+            if (typeof window === "undefined") return "300px";
+            const w = window.innerWidth;
+            // width <= 1200 -> use 250px
+            if (w <= 1200) return "250px";
+            return "300px";
+        };
+
+        const update = () => setCustomWidth(getCustomWidth());
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
+
     return (
         <Panel
             type={PanelType.customNear}
             style={{ padding: "0px" }}
             headerText={t("history.chatHistory")}
-            customWidth="300px"
+            customWidth={customWidth}
             isBlocking={false}
             isOpen={isOpen}
             onDismiss={() => onClose()}

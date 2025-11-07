@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider, Navigate } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import { HelmetProvider } from "react-helmet-async";
 import { initializeIcons } from "@fluentui/react";
@@ -23,7 +23,11 @@ const router = createHashRouter([
         children: [
             {
                 index: true,
-                element: <Intro /> // 첫 화면을 Intro로 변경
+                element: <Navigate to="/chat" replace />
+            },
+            {
+                path: "intro",
+                element: <Intro />
             },
             {
                 path: "chat",

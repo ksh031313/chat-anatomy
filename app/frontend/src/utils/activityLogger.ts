@@ -31,8 +31,35 @@ export const logUserActivity = async (
       sessionStorage.setItem("web_session_id", response.web_session_id);
     }
 
-    console.log("User activity logged:", response);
+    // console.log("User activity logged:", response);
   } catch (error) {
     console.error("Error occurred while logging user activity:", error);
+  }
+};
+
+/**
+ * Sends a best-effort activity log using navigator.sendBeacon for unload scenarios.
+ * This does not include an identity token; it relies on web_session_id stored in sessionStorage.
+ */
+export const logUserActivityBeacon = (
+  page: string,
+  activityType: string,
+  activityContent: string
+) => {
+  try {
+    if (typeof navigator === "undefined" || typeof window === "undefined") return false;
+    const activity = {
+      web_session_id: sessionStorage.getItem("web_session_id") || "",
+      page,
+      activity_type: activityType,
+      activity_content: activityContent,
+    };
+
+    const url = "/user_activity";
+    const blob = new Blob([JSON.stringify(activity)], { type: "application/json" });
+    return navigator.sendBeacon(url, blob);
+  } catch (e) {
+    // ignore errors; best-effort only
+    return false;
   }
 };

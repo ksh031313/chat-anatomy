@@ -2,40 +2,68 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { useLogin } from "../../authConfig";
+import { useState } from "react";
 import { logUserActivity } from "../../utils/activityLogger";
 import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Intro.module.css";
 
 const Intro = () => {
     const client = useLogin ? useMsal().instance : undefined;
+    const [isRetrievalNone, setIsRetrievalNone] = useState<boolean>(() => {
+        try {
+            const stored = sessionStorage.getItem("retrievalMode");
+            if (!stored) return false;
+            return stored.toLowerCase() === "none";
+        } catch (e) {
+            return false;
+        }
+    });
 
     // 화면 접속 시 로그 저장
     useEffect(() => {
         logUserActivity(client, "/intro", "page_visit", "User visited the Intro page");
     }, []);
 
+    // Keep local isRetrievalNone in sync if sessionStorage changes in same tab
+    useEffect(() => {
+        const stored = sessionStorage.getItem("retrievalMode");
+        try {
+            setIsRetrievalNone(Boolean(stored && stored.toLowerCase() === "none"));
+        } catch (e) {
+            console.debug("Could not read retrievalMode from sessionStorage", e);
+            setIsRetrievalNone(false);
+        }
+    }, []);
+
     return (
         <div className={styles.container}>
-            <div className={styles.title}>
-                해부학을 위한 AI 튜터
-            </div>
             <div className={styles.content}>
                 <img
                     src={appCharacter}
                     alt="App Character"
                     className={styles.image}
                 />
-                <div className={styles.text}>
-                    안녕! 나는 너와 함께 해부학을 쉽고 재밌게 공부할 AI 튜터 '토미'야!<br />
-                    이제 나와 함께 아래의 순서로 공부해볼거야.<br /><br />
-                    1) 교수님과 공부한 내용에 대해 너만의 말로 간단히 설명해봐.<br />
-                    2) 설명을 하다가 생긴 궁금한 점이나 모르는 내용을 나한테 물어보면 돼.<br />
-                    3) 너의 질문을 바탕으로 내가 만들어주는 퀴즈도 풀면서 실력을 키워가면 돼.<br /><br />
-                    자, 준비가 되었으면{" "}
-                    <Link to="/qa" className={styles.link}>
-                        1단계로 이동
-                    </Link>
-                    해서 공부를 시작해볼까? <span className={styles.emoji}>😊</span>
+                <div className={styles.title}>
+                    해부학을 위한 AI 튜터 사용법
+                </div>
+            </div>
+
+            <div className={styles.text}>
+                <div className={styles.textBody}>
+                    {isRetrievalNone ? (
+                        <>
+                            • AI 챗봇 Tomy와 함께 효율적으로 해부학을 공부하세요.<br />
+                            • 해부학을 실습하다가 궁금한 것이 생기면 ChatGPT에게 묻듯 편하게 Tomy에게 질문하며 공부하세요.<br />
+                            • 중간중간 Tomy가 잘 공부했나 묻기도 하고 질문한 내용을 바탕으로 맞춤형 퀴즈도 만들어줄 겁니다. AI 시대 남들보다 앞서가며 학습하세요!
+                        </>
+                    ) : (
+                        <>
+                            • 믿음직한 AI 챗봇 Tomy와 함께 효율적으로 해부학을 공부하세요.<br />
+                            • ChatGPT는 거짓말을 하지만 Tomy는 교수님이 제공한 자료에 기반해 대답하고 자료의 어느부분을 바탕으로 대답했는지 보여줍니다.<br />
+                            • 해부학을 실습하다가 궁금한 것이 생기면 ChatGPT에게 묻듯 편하게 Tomy에게 질문하고 바로 검증하세요.<br />
+                            • 중간중간 Tomy가 잘 공부했나 묻기도 하고 질문한 내용을 바탕으로 맞춤형 퀴즈도 만들어줄 겁니다. AI 시대 남들보다 앞서가며 학습하세요!
+                        </>
+                    )}
                 </div>
             </div>
         </div>

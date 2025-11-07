@@ -161,7 +161,6 @@ const Quiz: React.FC = () => {
     // 화면 진입 시 퀴즈 자동 불러오기
     useEffect(() => {
         handleGetQuiz();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // 퀴즈가 없으면 버튼만, 있으면 퀴즈 진행
@@ -169,21 +168,19 @@ const Quiz: React.FC = () => {
         <div className={styles.container}>
             <div className={styles.header}></div>
             <div>
-                <div className={styles.title}>AI가 만든 퀴즈를 풀며 복습하세요.</div>
+                {/* <div className={styles.title}>AI가 만든 퀴즈를 풀며 복습하세요.</div> */}
                 <div className={styles.content}>
                     <img src={appCharacter} alt="App Character" className={styles.image} />
-                    <div className={styles.text}>
-                        아까 네가 나에게 질문했던 내용을 바탕으로 퀴즈를 만들어봤어!<br />
-                        퀴즈를 풀면서 배운 내용을 복습해보자.<br />
-                        잘 학습했는지 확인해볼 준비됐지? <span className={styles.emoji}>😊</span>
+                    <div className={styles.title}>
+                        AI가 만든 퀴즈를 풀며 복습하세요.
                     </div>
                 </div>
             </div>
-            {quizzes.length === 0 && (
+            {/* {quizzes.length === 0 && (
                 <DefaultButton onClick={handleGetQuiz} disabled={loading} className={styles.button}>
                     퀴즈 불러오기
                 </DefaultButton>
-            )}
+            )} */}
             {loading && <Spinner label="퀴즈를 불러오는 중입니다..." />}
             {error && <div className={styles.error}>{error}</div>}
             {quizzes.length > 0 && currentIdx < quizzes.length && (
@@ -224,13 +221,12 @@ const Quiz: React.FC = () => {
                             ) : (
                                 <div className={styles.quizEnd}>
                                     퀴즈가 모두 끝났습니다!{" "}
-                                    <Link
-                                        to="/outro"
-                                        className={styles.link}
-                                        state={{ quizzes: savedQuizzes }}
-                                    >
-                                        학습 정리
-                                    </Link> 로 이동하세요.
+                                        <DefaultButton
+                                            onClick={() => navigate('/outro', { state: { quizzes: savedQuizzes } })}
+                                            className={styles.endButton}
+                                        >
+                                            학습 정리
+                                        </DefaultButton>{' '}로 이동하세요.
                                 </div>
                             )}
                         </div>

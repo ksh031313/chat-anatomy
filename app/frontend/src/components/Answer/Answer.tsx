@@ -101,9 +101,9 @@ export const Answer = ({
             <Stack.Item grow>
                 <div className={styles.answerText}>
                     <ReactMarkdown children={sanitizedAnswerHtml} rehypePlugins={[rehypeRaw]} remarkPlugins={[remarkGfm]} />
-                    {(index + 1) % 3 === 0 && !isStreaming && (
+                    {(index + 1) % 5 === 0 && !isStreaming && (
                         <div className={styles.answerSummaryPrompt}>
-                            지금까지 대화한 내용을 정리해볼까?
+                            지금까지 제가 답변한 내용을 요약해 보세요.
                         </div>
                     )}
                 </div>

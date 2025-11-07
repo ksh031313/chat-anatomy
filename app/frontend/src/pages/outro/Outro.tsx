@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import DOMPurify from "dompurify";
 import { useMsal } from "@azure/msal-react";
 import { useLogin, getToken } from "../../authConfig";
 import { logUserActivity } from "../../utils/activityLogger";
@@ -9,6 +6,9 @@ import appCharacter from "../../assets/해부학_AI_캐릭터.png";
 import styles from "./Outro.module.css";
 import { useLocation } from "react-router-dom";
 import { getChatHistorySummaryApi } from "../../api/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from "rehype-raw";
 
 const Outro = () => {
@@ -19,6 +19,7 @@ const Outro = () => {
     const [summary, setSummary] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
+    const memoSummary = useMemo(() => summary, [summary]);
 
     useEffect(() => {
         logUserActivity(client, "/outro", "page_visit", "User visited the Outro page");
@@ -39,8 +40,29 @@ const Outro = () => {
                 }
                 const result = await getChatHistorySummaryApi(idToken);
                 if (result.summary) {
-                    setSummary(result.summary);
+                    // Log raw summary for debugging/verification
+                    // console.log("getChatHistorySummaryApi: raw summary:", result.summary);
+
+                    // If the LLM wrapped the markdown inside a fenced code block (e.g. ```markdown ... ```),
+                    // strip that so ReactMarkdown renders headings/lists instead of a code block.
+                    let cleaned = (result.summary as string).trim();
+                    // Remove leading ```lang or ``` if present
+                    if (/^```[\w-]*\n/i.test(cleaned)) {
+                        cleaned = cleaned.replace(/^```[\w-]*\n/, "");
+                    }
+                    // Remove trailing ``` fence if present
+                    if (/\n```\s*$/i.test(cleaned)) {
+                        cleaned = cleaned.replace(/\n```\s*$/, "");
+                    }
+
+                    // Log cleaned summary and markdown-likeness
+                    // console.log("getChatHistorySummaryApi: cleaned summary:", cleaned);
+                    const isMarkdownLike = /(^#{1,6}\s)|(^\s*[-*+]\s+)|(^\s*\d+\.\s+)|(^>\s+)/m.test(cleaned);
+                    // console.log("getChatHistorySummaryApi: looksLikeMarkdown:", isMarkdownLike);
+
+                    setSummary(cleaned);
                 } else {
+                    // console.log("getChatHistorySummaryApi: no summary, error:", result.error);
                     setError(result.error || "요약 정보를 가져올 수 없습니다.");
                 }
             } catch (err: any) {
@@ -59,6 +81,8 @@ const Outro = () => {
         setCurrentIdx((prev) => Math.min(prev + 1, quizzes.length - 1));
     };
 
+    // summary will be rendered directly as Markdown
+
     return (
         <div className={styles.container}>
             <div className={styles.title}>학습 정리</div>
@@ -76,7 +100,9 @@ const Outro = () => {
                         <span className={styles.error}>{error}</span>
                     ) : (
                         <div className={styles.summaryBox}>
-                            <ReactMarkdown rehypePlugins={[rehypeRaw]} remarkPlugins={[remarkGfm]}>{useMemo(() => DOMPurify.sanitize(summary), [summary])}</ReactMarkdown>
+                            <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]} remarkPlugins={[remarkGfm]}> 
+                                {memoSummary}
+                            </ReactMarkdown>
                         </div>
                     )}
                     {/* 퀴즈 결과 영역을 요약 아래에 위치 */}
@@ -114,6 +140,10 @@ const Outro = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                    {/* 마무리 멘트 */}
+                    <div className={styles.finishMessage} style={{ marginTop: "1rem", textAlign: "center" }}>
+                        수고하셨습니다.
                     </div>
                 </div>
             </div>

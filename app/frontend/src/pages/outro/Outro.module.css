@@ -96,6 +96,13 @@
     margin-top: 16px;
     font-size: 18px;
 }
+
+.finishMessage {
+    margin-top: 16px;
+    font-size: 18px;
+    color: #555;
+    font-weight: 500;
+}
 .container {
     padding: 32px;
     min-height: 100vh;

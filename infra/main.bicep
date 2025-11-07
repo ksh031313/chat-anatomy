@@ -67,6 +67,11 @@ param speechServiceVoice string = ''
 param useGPT4V bool = false
 param useEval bool = false
 
+// Translator configuration
+@secure()
+param azureTranslatorKey string = ''
+param azureTranslatorRegion string = 'koreacentral'
+
 @allowed(['free', 'provisioned', 'serverless'])
 param cosmosDbSkuName string // Set in main.parameters.json
 param cosmodDbResourceGroupName string = ''
@@ -436,6 +441,9 @@ var appEnvVariables = {
   USE_LOCAL_HTML_PARSER: useLocalHtmlParser
   USE_MEDIA_DESCRIBER_AZURE_CU: useMediaDescriberAzureCU
   AZURE_CONTENTUNDERSTANDING_ENDPOINT: useMediaDescriberAzureCU ? contentUnderstanding.outputs.endpoint : ''
+  // Translator settings (set via secure parameter or Key Vault)
+  AZURE_TRANSLATOR_KEY: azureTranslatorKey
+  AZURE_TRANSLATOR_REGION: azureTranslatorRegion
   RUNNING_IN_PRODUCTION: 'true'
 }
 

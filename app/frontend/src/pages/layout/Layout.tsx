@@ -38,20 +38,11 @@ const Layout = () => {
         <div className={styles.layout}>
             <header className={styles.header} role={"banner"}>
                 <div className={styles.headerContainer} ref={menuRef}>
-                    <Link to="/" className={styles.headerTitleContainer}>
+                    <Link to="/chat" className={styles.headerTitleContainer}>
                         <h3 className={styles.headerTitle}>{t("headerTitle")}</h3>
                     </Link>
                     <nav>
                         <ul className={`${styles.headerNavList} ${menuOpen ? styles.show : ""}`}>
-                            <li>
-                                <NavLink
-                                    to="/"
-                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    {t("intro")}
-                                </NavLink>
-                            </li>
                             {/* <li>
                                 <NavLink
                                     to="/qa"
@@ -77,6 +68,15 @@ const Layout = () => {
                                     onClick={() => setMenuOpen(false)}
                                 >
                                     {t("quiz")}
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/intro"
+                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {t("intro")}
                                 </NavLink>
                             </li>
                         </ul>
